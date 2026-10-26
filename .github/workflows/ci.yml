@@ -1,0 +1,25 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e '.[dev]'
+      - run: make -C firmware/pico/host test
+      - run: pytest -q
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi cmake
+      - run: git clone --depth 1 --branch 2.1.1 https://github.com/raspberrypi/pico-sdk "$RUNNER_TEMP/pico-sdk"
+      - run: PICO_SDK_PATH="$RUNNER_TEMP/pico-sdk" cmake -S firmware/pico -B build -DPICO_BOARD=pico2
+      - run: cmake --build build -j
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lm_timing_controller.uf2
+          path: build/lm_timing_controller.uf2

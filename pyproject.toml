@@ -1,0 +1,20 @@
+[project]
+name = "launchmonitor"
+version = "0.1.0"
+description = "DIY photometric golf launch monitor (GC3/GC Quad-style) for Raspberry Pi"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26", "opencv-python-headless>=4.8"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

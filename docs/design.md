@@ -101,12 +101,32 @@ checked on the bench.
   modulation.
 
 ## Markings
-* **Ball:** 24 dots in a Fibonacci-sphere pattern, applied with a 3D-printed jig so every ball
-  is identical. The ink must absorb IR: use carbon-pigment ink (e.g. Sakura Pigma Micron).
-  Many Sharpie inks are invisible at 850 nm, so test under the strobe first.
+* **Ball:** 30 dots of 3.5 mm in an irregular pattern (`src/launchmonitor/data/ball_pattern.json`),
+  applied with the 3D-printed jig (`cad/ball_jig.scad`) so every ball is identical. The pattern
+  was chosen by `tools/make_ball_pattern.py`: of 12 random well-spaced candidates, it's the one
+  whose orientation is recovered most reliably from only the dots two cameras can see (300 of
+  300 trials). Dots stay 7° clear of the jig's seam. **Treat the pattern as fixed once balls are
+  marked:** regenerating it makes every marked ball useless.
+* **Ink:** must absorb IR. Use carbon-pigment ink (e.g. Sakura Pigma Micron). Many Sharpie inks
+  are invisible at 850 nm, so test under the strobe first.
 * **Club:** 4 matte dots in an asymmetric layout (`FACE_MARKERS_UV` in `sim.py`) on a sticker
   on the face near the toe. The solver fits this known layout, which is better conditioned
   than a free plane fit.
+
+## Ball-dot matching (src/launchmonitor/dots.py)
+Image detection (`detect.detect_shot`) finds ball images and dark dots but doesn't know which
+dot is which. For each ball flash:
+1. Back-project every dot onto the ball sphere (centre triangulated from the ball images, known
+   radius). This works from one camera, so dots only one camera sees still count.
+2. Merge points from both cameras that land within 1.5 mm of each other.
+3. Find the rotation of the known pattern that explains the points. A coarse search over 12,000
+   rotations is followed by ICP on the best 8. The score also penalises pattern dots that face
+   the cameras squarely but weren't detected, which removes look-alike orientations.
+4. Give each detection the id of the nearest rotated pattern dot (within 8°).
+
+On rendered frames (driver and wedge, pixels in), every dot was labelled correctly, and spin came
+out within about 1% (`tests/test_dots.py`). It takes about 0.1-0.3 s per flash in Python on a
+laptop; the Pi 5 will be slower. Vectorising or porting the coarse search is the obvious speed-up.
 
 ## Solver (src/launchmonitor/solver.py)
 1. Triangulate every detection seen by 2 or more cameras in the same flash (N-view DLT).
@@ -123,20 +143,21 @@ checked on the bench.
 
 | Shot | Rig | Ball mph | VLA | HLA | Spin % | Axis | Club mph | Path | Attack | Face | Loft |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| driver | 2-camera | 0.08 | 0.01 | 0.07 | 0.34 | 0.39 | 0.21 | 0.14 | 0.03 | 0.56 | 0.65 |
-| driver | 4-camera | 0.08 | 0.01 | 0.07 | 0.34 | 0.39 | 0.07 | 0.05 | 0.02 | 0.18 | 0.21 |
-| 7-iron | 2-camera | 0.06 | 0.01 | 0.07 | 0.12 | 0.13 | 0.14 | 0.15 | 0.04 | 0.54 | 0.60 |
-| 7-iron | 4-camera | 0.06 | 0.01 | 0.07 | 0.12 | 0.13 | 0.04 | 0.05 | 0.02 | 0.18 | 0.21 |
-| wedge | 2-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.12 | 0.13 | 0.14 | 0.04 | 0.64 | 0.61 |
-| wedge | 4-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.12 | 0.04 | 0.05 | 0.02 | 0.24 | 0.23 |
+| driver | 2-camera | 0.08 | 0.01 | 0.07 | 0.33 | 0.39 | 0.21 | 0.14 | 0.03 | 0.56 | 0.65 |
+| driver | 4-camera | 0.08 | 0.01 | 0.07 | 0.33 | 0.39 | 0.07 | 0.05 | 0.02 | 0.18 | 0.21 |
+| 7-iron | 2-camera | 0.06 | 0.01 | 0.08 | 0.11 | 0.13 | 0.14 | 0.15 | 0.04 | 0.54 | 0.60 |
+| 7-iron | 4-camera | 0.06 | 0.01 | 0.08 | 0.11 | 0.13 | 0.04 | 0.05 | 0.02 | 0.18 | 0.21 |
+| wedge | 2-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.11 | 0.13 | 0.14 | 0.04 | 0.64 | 0.61 |
+| wedge | 4-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.11 | 0.04 | 0.05 | 0.02 | 0.24 | 0.23 |
 
 These are lower bounds. Real error will be higher, mostly from calibration, lens distortion,
-detection bias, dot-correspondence mistakes and timing jitter, none of which are modelled yet.
+detection bias and timing jitter, none of which are modelled yet.
 What the table does show: **the dedicated club pair cuts face and loft error about 3x.** Ball
 data doesn't change, since stage 2 doesn't touch the ball cameras.
 
 ## Setup at a new location
-1. Place the unit using the printed spacing gauge (fixed offset from the ball).
+1. Place the unit about 60 cm from the ball. The resting ball only needs to be in view (the live
+   preview shows it); its exact position is measured, not assumed.
 2. The IMU measures tilt, and the solver rotates results into a level frame. (Planned)
 3. Lay an alignment stick at the target and tap **Align**. The cameras detect the stick and
    store an aim offset. (Planned)
@@ -144,9 +165,10 @@ data doesn't change, since stage 2 doesn't touch the ball cameras.
    and the rigid aluminium frame keeps it.
 
 ## Known risks / open questions
-* **Dot correspondence:** the solver currently gets dot IDs from the simulator. Real detection
-  must work out which dot is which across flashes and cameras. Options: dots of different
-  sizes, or matching against the known pattern under candidate rotations.
+* **Dot matching on real images:** solved on simulated frames (above). Still unproven against
+  real dimples, scuffs, logos, uneven hand-marked dots, and printed-jig tolerances. If the
+  ball's logo shows up as false dots, raise the dot-size filter or mark balls with the logo
+  under the jig's solid area. UNVERIFIED on hardware.
 * **High-spin aliasing:** wedges at 10,000 rpm turn about 90° between flashes. That's fine, but
   close to the 180° limit at low ball speed. Could add one extra closely spaced flash pair.
 * **Club and ball overlap at impact:** the last club flash is 1.5 cm before contact. Check on

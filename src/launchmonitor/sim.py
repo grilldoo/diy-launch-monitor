@@ -2,7 +2,8 @@
 
 Turns known launch conditions into what the cameras would report, so the solver
 can be developed and regression-tested without hardware. Two levels:
-  * simulate()  -> ShotObservation of ideal 2D detections (+ pixel noise) with ids
+  * simulate()  -> ShotObservation of ideal 2D detections (+ pixel noise), with
+                   dot ids (labeled=True) or without, as real detection gives them
   * render()    -> multi-exposure IR frames, for testing the detectors themselves
 """
 
@@ -14,17 +15,15 @@ import numpy as np
 
 from . import geometry as g
 from .camera import Camera
+from .dots import load_pattern
 from .models import BALL_RADIUS_M, Detection, ShotObservation, ShotTruth
 from .rig import Rig
 from .schedule import FLASH_BALL, FLASH_CLUB, TimingConfig, compute_schedule
 
 
-def ball_dot_pattern(n: int = 24) -> np.ndarray:
-    """Unit vectors of the ball marking pattern (Fibonacci sphere; printed with a jig)."""
-    i = np.arange(n) + 0.5
-    phi = np.arccos(1 - 2 * i / n)
-    theta = np.pi * (1 + 5**0.5) * i
-    return np.column_stack([np.cos(theta) * np.sin(phi), np.cos(phi), np.sin(theta) * np.sin(phi)])
+def ball_dot_pattern() -> np.ndarray:
+    """Unit vectors of the ball marking pattern (data/ball_pattern.json; printed with the jig)."""
+    return load_pattern()
 
 
 # Club-face sticker dots in face coordinates (u toward toe, v up the face), metres.
@@ -106,7 +105,9 @@ def _ray_hits_ball(origin: np.ndarray, target: np.ndarray, center: np.ndarray) -
     return np.linalg.norm(oc - s * d) < BALL_RADIUS_M
 
 
-def observe(state: SimState, rig: Rig, rng: np.random.Generator, pixel_noise: float = 0.15) -> ShotObservation:
+def observe(
+    state: SimState, rig: Rig, rng: np.random.Generator, pixel_noise: float = 0.15, labeled: bool = True
+) -> ShotObservation:
     obs = ShotObservation(state.flash_times_s, state.flash_kinds)
 
     def add(cam: Camera, i: int, kind: str, ids, pts):
@@ -114,7 +115,8 @@ def observe(state: SimState, rig: Rig, rng: np.random.Generator, pixel_noise: fl
         ok = cam.in_image(uv, depth)
         for j, idx in enumerate(ids):
             if ok[j]:
-                obs.detections.append(Detection(cam.name, i, kind, int(idx), uv[j] + rng.normal(0, pixel_noise, 2)))
+                did = int(idx) if labeled or kind != "dot" else -1
+                obs.detections.append(Detection(cam.name, i, kind, did, uv[j] + rng.normal(0, pixel_noise, 2)))
 
     for i, kind in enumerate(state.flash_kinds):
         c = state.ball_centers[i]
@@ -150,23 +152,36 @@ def simulate(
     pixel_noise: float = 0.15,
     impact_error_s: float = 0.0,
     timing: TimingConfig | None = None,
+    labeled: bool = True,
 ) -> tuple[ShotObservation, SimState]:
     rng = np.random.default_rng(seed)
     q = rng.normal(size=3)
     R0 = g.rotvec_to_matrix(q / np.linalg.norm(q) * rng.uniform(0, np.pi))
     state = shot_state(truth, timing, impact_error_s, initial_orientation=R0)
-    return observe(state, rig, rng, pixel_noise), state
+    return observe(state, rig, rng, pixel_noise, labeled), state
 
 
-def render(state: SimState, cam: Camera, rng: np.random.Generator | None = None, noise: float = 3.0) -> np.ndarray:
-    """Render one multi-exposure 8-bit frame: every flash adds a lit ball (with dark dots).
+def render(
+    state: SimState,
+    cam: Camera,
+    rng: np.random.Generator | None = None,
+    noise: float = 3.0,
+    dot_diameter_m: float = 0.0035,
+    supersample: int = 2,
+) -> np.ndarray:
+    """Render one multi-exposure 8-bit frame: every flash adds a lit ball with dark dots.
 
-    Simple shading model; good enough to exercise detection, not photorealistic.
-    The static ball is lit by every pre-impact flash, so it saturates.
+    Rays are traced against the sphere, so dots foreshorten correctly toward the limb.
+    The strobe sits next to the cameras, so shading follows the view angle. The resting
+    ball is lit by every pre-impact flash and saturates. Not photorealistic, but
+    geometrically faithful.
     """
     rng = rng or np.random.default_rng(0)
     img = np.zeros((cam.height, cam.width), np.float32)
-    ys, xs = np.mgrid[0 : cam.height, 0 : cam.width]
+    Kinv = np.linalg.inv(cam.K)
+    cos_dot = np.cos(dot_diameter_m / 2 / BALL_RADIUS_M)
+    o = cam.center
+    offs = (np.arange(supersample) + 0.5) / supersample - 0.5
     for i in range(len(state.flash_times_s)):
         c = state.ball_centers[i]
         uv, depth = cam.project(c[None])
@@ -174,26 +189,27 @@ def render(state: SimState, cam: Camera, rng: np.random.Generator | None = None,
             continue
         r_px = cam.K[0, 0] * BALL_RADIUS_M / depth[0]
         u0, v0 = uv[0]
-        x0, x1 = int(max(u0 - r_px - 2, 0)), int(min(u0 + r_px + 3, cam.width))
-        y0, y1 = int(max(v0 - r_px - 2, 0)), int(min(v0 + r_px + 3, cam.height))
+        x0, x1 = int(max(u0 - r_px - 3, 0)), int(min(u0 + r_px + 4, cam.width))
+        y0, y1 = int(max(v0 - r_px - 3, 0)), int(min(v0 + r_px + 4, cam.height))
         if x0 >= x1 or y0 >= y1:
             continue
-        dx, dy = xs[y0:y1, x0:x1] - u0, ys[y0:y1, x0:x1] - v0
-        rr = np.sqrt(dx**2 + dy**2) / r_px
-        disk = np.clip((1.0 - rr) * r_px + 0.5, 0, 1)  # anti-aliased edge
-        shade = 0.55 + 0.45 * np.sqrt(np.clip(1 - rr**2, 0, 1))
-        layer = 180.0 * disk * shade
-        # Dark marking dots on the camera-facing side.
-        dpts = state.ball_dots[i]
-        normals = (dpts - c) / BALL_RADIUS_M
-        to_cam = cam.center - dpts
-        to_cam /= np.linalg.norm(to_cam, axis=1, keepdims=True)
-        vis = np.einsum("ij,ij->i", normals, to_cam) > 0.05
-        duv, _ = cam.project(dpts[vis])
-        dot_r = 0.12 * r_px
-        for du, dv in duv:
-            m = (xs[y0:y1, x0:x1] - du) ** 2 + (ys[y0:y1, x0:x1] - dv) ** 2 < dot_r**2
-            layer[m] *= 0.2
-        img[y0:y1, x0:x1] += layer
+        dot_dirs = (state.ball_dots[i] - c) / BALL_RADIUS_M
+        acc = np.zeros((y1 - y0, x1 - x0), np.float32)
+        for dy in offs:
+            for dx in offs:
+                ys, xs = np.mgrid[y0:y1, x0:x1].astype(float)
+                pix = np.stack([xs + dx, ys + dy, np.ones_like(xs)], -1)
+                d = pix @ Kinv.T @ cam.R
+                d /= np.linalg.norm(d, axis=-1, keepdims=True)
+                oc = o - c
+                b = d @ oc
+                disc = b * b - (oc @ oc - BALL_RADIUS_M**2)
+                hit = disc > 0
+                sdist = -b - np.sqrt(np.where(hit, disc, 0))
+                nrm = (o + sdist[..., None] * d - c) / BALL_RADIUS_M
+                shade = 0.35 + 0.65 * np.clip(-(nrm * d).sum(-1), 0, 1)
+                dark = (nrm @ dot_dirs.T).max(-1) > cos_dot
+                acc += np.where(hit, 180.0 * shade * np.where(dark, 0.2, 1.0), 0.0)
+        img[y0:y1, x0:x1] += acc / supersample**2
     img += rng.normal(8.0, noise, img.shape)
     return np.clip(img, 0, 255).astype(np.uint8)

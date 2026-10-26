@@ -13,9 +13,12 @@ jobs:
       - run: pytest -q
   firmware:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi cmake
+      - uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: "13.2.Rel1"
       - run: git clone --depth 1 --branch 2.1.1 https://github.com/raspberrypi/pico-sdk "$RUNNER_TEMP/pico-sdk"
       - run: PICO_SDK_PATH="$RUNNER_TEMP/pico-sdk" cmake -S firmware/pico -B build -DPICO_BOARD=pico2
       - run: cmake --build build -j

@@ -73,13 +73,14 @@ def test_rendered_frames_end_to_end(truth):
     obs = detect_shot(frames, st.flash_kinds, st.flash_times_s)
     matched, fits = label_dots(obs, rig)
     assert len(fits) == 5 and all(f.n_missing == 0 for f in fits.values())
-    # Every labeled detection lands on the true projection of that pattern dot.
+    # Every labeled detection lands on the true projection of that pattern dot. (1.5 px, not
+    # less: after impact the club's sticker image can overlap a ball image and nudge a dot.)
     cams = {c.name: c for c in rig.ball_cams}
     n_dots = 0
     for d in matched.detections:
         if d.kind == "dot":
             uv, _ = cams[d.camera].project(st.ball_dots[d.flash][d.id][None])
-            assert np.linalg.norm(uv[0] - d.uv) < 1.0
+            assert np.linalg.norm(uv[0] - d.uv) < 1.5
             n_dots += 1
     assert n_dots >= 60
     r = solve(matched, rig, with_carry=False)

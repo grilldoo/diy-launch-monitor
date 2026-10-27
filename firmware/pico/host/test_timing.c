@@ -17,10 +17,10 @@ static void test_typical_driver(void) {
     lm_timing_cfg_t cfg;
     lm_schedule_t s;
     lm_default_cfg(&cfg);
-    // 45 m/s club: gates 0.13 m apart -> 2889 us.
-    CHECK(lm_compute_schedule(&cfg, 1000000, 1002889, &s));
+    // 45 m/s club: gates 0.12 m apart -> 2667 us; gate 2 is 0.18 m out -> impact 4000 us later.
+    CHECK(lm_compute_schedule(&cfg, 1000000, 1002667, &s));
     CHECK(s.club_speed > 44.9 && s.club_speed < 45.1);
-    CHECK(s.t_impact_us == 1002889 + 2667);
+    CHECK(s.t_impact_us == 1002667 + 4000);
     CHECK(s.n_flashes == 8);
     for (int i = 1; i < s.n_flashes; i++) CHECK(s.flash_us[i] > s.flash_us[i - 1] + cfg.pulse_us);
     CHECK(s.flash_kind[0] == LM_FLASH_CLUB && s.flash_kind[2] == LM_FLASH_CLUB);
@@ -34,9 +34,9 @@ static void test_fast_swing_drops_early_flash(void) {
     lm_schedule_t s;
     lm_default_cfg(&cfg);
     cfg.min_lead_us = 1000;  // pretend the Pico is slow to react
-    CHECK(lm_compute_schedule(&cfg, 0, 1857, &s));  // ~70 m/s
+    CHECK(lm_compute_schedule(&cfg, 0, 1714, &s));  // ~70 m/s
     CHECK(s.n_flashes < 8);
-    for (int i = 0; i < s.n_flashes; i++) CHECK(s.flash_us[i] >= 1857 + 1000 + cfg.exposure_lead_us);
+    for (int i = 0; i < s.n_flashes; i++) CHECK(s.flash_us[i] >= 1714 + 1000 + cfg.exposure_lead_us);
 }
 
 static void test_rejects_bad_input(void) {
@@ -44,7 +44,7 @@ static void test_rejects_bad_input(void) {
     lm_schedule_t s;
     lm_default_cfg(&cfg);
     CHECK(!lm_compute_schedule(&cfg, 100, 100, &s));
-    CHECK(!lm_compute_schedule(&cfg, 0, 1000000, &s));  // 0.13 m/s: not a swing
+    CHECK(!lm_compute_schedule(&cfg, 0, 1000000, &s));  // 0.12 m/s: not a swing
     CHECK(!lm_compute_schedule(&cfg, 0, 100, &s));  // 1300 m/s: noise
 }
 

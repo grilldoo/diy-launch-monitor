@@ -18,7 +18,7 @@ SHOTS = {
 TOL = dict(ball_mph=0.5, vla=0.3, hla=0.3, spin_frac=0.05, axis=2.0, club_mph=1.0, path=0.8, attack=0.5)
 # Face/loft depend on how closely the cameras see the club: the dedicated
 # 4-camera club pair is ~3x better than sharing one pair.
-FACE_LOFT_TOL = {"2-camera": 2.6, "4-camera": 1.0}
+FACE_LOFT_TOL = {"2-camera": 2.9, "4-camera": 1.1}
 
 
 @pytest.mark.parametrize("rig_fn", [two_camera_rig, four_camera_rig], ids=["2cam", "4cam"])

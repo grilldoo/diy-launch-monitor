@@ -7,11 +7,12 @@ static int64_t round_half_up(double x) { return (int64_t)floor(x + 0.5); }
 
 void lm_default_cfg(lm_timing_cfg_t *cfg) {
     memset(cfg, 0, sizeof(*cfg));
-    cfg->gate1_m = 0.25;
-    cfg->gate2_m = 0.12;
-    cfg->club_flash_m[0] = 0.09;
-    cfg->club_flash_m[1] = 0.05;
-    cfg->club_flash_m[2] = 0.015;
+    cfg->gate1_m = 0.30;
+    cfg->gate2_m = 0.18;
+    // ~5.5 cm apart so the club-sticker images don't overlap in either camera.
+    cfg->club_flash_m[0] = 0.13;
+    cfg->club_flash_m[1] = 0.075;
+    cfg->club_flash_m[2] = 0.02;
     cfg->n_club = 3;
     cfg->ball_spacing_m = 0.06;
     cfg->n_ball = 5;

@@ -24,9 +24,11 @@ FLASH_BALL = 1
 
 @dataclass
 class TimingConfig:
-    gate1_m: float = 0.25  # gate distance behind the ball
-    gate2_m: float = 0.12
-    club_flash_m: tuple[float, ...] = (0.09, 0.05, 0.015)  # club distance before impact
+    gate1_m: float = 0.30  # gate distance behind the ball
+    gate2_m: float = 0.18
+    # Club distance before impact. ~5.5 cm apart so the sticker images don't overlap in
+    # either camera (they're seen at a steep angle); the last one 2 cm out for face angle.
+    club_flash_m: tuple[float, ...] = (0.13, 0.075, 0.02)
     ball_spacing_m: float = 0.06
     n_ball: int = 5
     smash_est: float = 1.35

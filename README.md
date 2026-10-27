@@ -13,8 +13,8 @@ GC3 / GCQuad. It sits beside the ball, needs no in-bay calibration, and sends ba
 > firmware, capture, ChArUco stereo calibration, image detection, ball-dot matching, solver,
 > flight model, and the GSPro loop with shot saving and replay. All of it is tested against
 > simulated shots and rendered frames, including lens distortion. Printable parts are in
-> `cad/stl/`. Nothing has run on real hardware yet. Club-marker detection in images is the
-> main missing piece: club data is solved from simulated detections, not yet from pixels.
+> `cad/stl/`. Club data (speed, path, attack, face, loft) is read from the face sticker in the
+> images. Nothing has run on real hardware yet.
 
 ## Docs
 * [Design](docs/design.md): how it works, conventions, timing, simulated accuracy, risks
@@ -73,6 +73,6 @@ cd firmware/pico && cmake -B build -DPICO_BOARD=pico2 && cmake --build build
 1. **Bench test:** Pico + LEDs + one camera; multi-flash frame of a hand-dropped ball (`TEST 20` over serial)
 2. **Ball data:** stereo calibration, Pi capture, real ball detection, GSPro hookup
 3. **Spin:** marked balls, dot detection and correspondence
-4. **Club:** gates, club sticker detection, face/path
+4. **Club:** gates, sticker detection on real frames, per-club face offset for woods
 5. **Package:** enclosure (with the reference edge and sight notches), battery, phone page
 6. **Stage 2 and outdoor:** dedicated club camera pair; 940 nm outdoor kit

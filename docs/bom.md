@@ -33,7 +33,7 @@ stage 1 leaves space and wiring for stage 2.
 | 21 | Perfboard, headers, JST connectors, wire, heat shrink | 1 set | $15 | |
 | 22 | PETG filament, 1 kg | 1 | $20 | PETG is fine for the A1 Mini (no enclosure needed); handles warmth better than PLA |
 | 23 | Ball marking: Sakura Pigma Micron 05 (black) + printed jig | 1 | $8 | Carbon pigment ink shows up in IR |
-| 24 | Club marker stickers: matte white vinyl sticker paper | 1 | $10 | Print black dots on it |
+| 24 | Matte white sticker paper (laser or inkjet) for the club stickers | 1 | $10 | One sticker per club; see docs/printing.md |
 | 25 | Checkerboard calibration target (print on foam board) | 1 | $5 | |
 | 26 | Line laser module (optional, shows ball position) | 1 | $5 | |
 | | **Stage 1 total** | | **~$530-600** | |

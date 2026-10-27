@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from launchmonitor.dots import PATTERN_FILE, load_pattern  # noqa: E402
 from launchmonitor.rig import four_camera_rig  # noqa: E402
-from launchmonitor.sim import FACE_MARKERS_UV  # noqa: E402
+from launchmonitor.markers import DOT_DIAMETER_M, FACE_MARKERS_UV, STICKER_RECT  # noqa: E402
 
 import json  # noqa: E402
 
@@ -65,31 +65,39 @@ def write_rig_angles(gen=GEN):
     return out
 
 
-def write_club_marker_sheet(cols=4, rows=3, dot_d=3.0, margin=4.0):
+def write_club_marker_sheet(cols=4, rows=4):
     uv = FACE_MARKERS_UV * 1000  # mm; u toward toe, v up the face
-    lo, hi = uv.min(axis=0) - margin, uv.max(axis=0) + margin
-    w, h = hi - lo
-    pitch_x, pitch_y = w + 8, h + 14
+    u0, v0, u1, v1 = (x * 1000 for x in STICKER_RECT)
+    w, h = u1 - u0, v1 - v0
+    dot_d = DOT_DIAMETER_M * 1000
+    pitch_x, pitch_y = w + 10, h + 14
     W, H = cols * pitch_x + 20, rows * pitch_y + 40
+    font = 'font-family="sans-serif"'
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W:.1f}mm" height="{H:.1f}mm" viewBox="0 0 {W:.1f} {H:.1f}">',
         '<rect width="100%" height="100%" fill="white"/>',
-        '<text x="10" y="8" font-family="sans-serif" font-size="4">Club face markers - print at 100% on matte white '
-        "sticker paper; check the 50 mm bar. Place near the toe, arrow toward toe, face grooves level.</text>",
-        '<line x1="10" y1="14" x2="60" y2="14" stroke="black" stroke-width="0.6"/>',
-        '<text x="62" y="15.5" font-family="sans-serif" font-size="3.5">50 mm</text>',
+        f'<text x="10" y="8" {font} font-size="3.6">Club face stickers: print at 100% on matte white sticker paper '
+        "(check the 50 mm bar), cut on the grey line.</text>",
+        f'<text x="10" y="13" {font} font-size="3">Right-handed clubs. Stick flat on the face, toe side, arrow toward the toe, '
+        f"inner edge about {u0:.1f} mm toe-side of the face centre. Rotation doesn't matter.</text>",
+        '<line x1="10" y1="18" x2="60" y2="18" stroke="black" stroke-width="0.6"/>',
+        f'<text x="62" y="19.5" {font} font-size="3">50 mm</text>',
     ]
     for r in range(rows):
         for c in range(cols):
-            ox, oy = 10 + c * pitch_x, 22 + r * pitch_y
-            parts.append(f'<rect x="{ox:.2f}" y="{oy:.2f}" width="{w:.2f}" height="{h:.2f}" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>')
-            for u, v in uv:
-                # SVG y grows downward: v (up the face) maps to -y
-                parts.append(f'<circle cx="{ox + u - lo[0]:.3f}" cy="{oy + hi[1] - v:.3f}" r="{dot_d / 2}" fill="black"/>')
+            ox, oy = 10 + c * pitch_x, 26 + r * pitch_y
+            parts.append(f'<rect x="{ox:.2f}" y="{oy:.2f}" width="{w:.2f}" height="{h:.2f}" rx="1.5" fill="none" '
+                         'stroke="#bbb" stroke-width="0.25"/>')
+            # Printed as seen looking at the club face from the front (from the target): for a
+            # right-handed club the toe is on the LEFT. Printing it the other way round would be a
+            # mirror image, which no amount of rotating the sticker can fix (label_sticker rejects it).
+            for u, v in uv:  # x = toe to the left; SVG y grows downward, so v (up the face) maps to -y
+                parts.append(f'<circle cx="{ox + u1 - u:.3f}" cy="{oy + v1 - v:.3f}" r="{dot_d / 2}" fill="black"/>')
             ay = oy + h + 4
-            parts.append(f'<line x1="{ox + 2:.2f}" y1="{ay:.2f}" x2="{ox + w - 4:.2f}" y2="{ay:.2f}" stroke="#666" stroke-width="0.4"/>')
-            parts.append(f'<polygon points="{ox + w - 4:.2f},{ay - 1.2:.2f} {ox + w - 1:.2f},{ay:.2f} {ox + w - 4:.2f},{ay + 1.2:.2f}" fill="#666"/>')
-            parts.append(f'<text x="{ox + 2:.2f}" y="{ay + 4:.2f}" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>')
+            parts.append(f'<line x1="{ox + 4:.2f}" y1="{ay:.2f}" x2="{ox + w - 2:.2f}" y2="{ay:.2f}" stroke="#666" stroke-width="0.4"/>')
+            parts.append(f'<polygon points="{ox + 4:.2f},{ay - 1.2:.2f} {ox + 1:.2f},{ay:.2f} '
+                         f'{ox + 4:.2f},{ay + 1.2:.2f}" fill="#666"/>')
+            parts.append(f'<text x="{ox + w - 8:.2f}" y="{ay + 4:.2f}" {font} font-size="2.5" fill="#666">TOE</text>')
     parts.append("</svg>")
     (CAD / "club_markers.svg").write_text("\n".join(parts) + "\n")
 

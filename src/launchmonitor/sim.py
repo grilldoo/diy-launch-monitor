@@ -16,6 +16,7 @@ import numpy as np
 from . import geometry as g
 from .camera import Camera
 from .dots import load_pattern
+from .markers import DOT_DIAMETER_M, FACE_MARKERS_UV, STICKER_RECT
 from .models import BALL_RADIUS_M, Detection, ShotObservation, ShotTruth
 from .rig import Rig
 from .schedule import FLASH_BALL, FLASH_CLUB, TimingConfig, compute_schedule
@@ -26,9 +27,6 @@ def ball_dot_pattern() -> np.ndarray:
     return load_pattern()
 
 
-# Club-face sticker dots in face coordinates (u toward toe, v up the face), metres.
-# Asymmetric so the layout has a unique orientation.
-FACE_MARKERS_UV = np.array([[0.006, 0.007], [0.028, 0.007], [0.006, -0.006], [0.024, -0.008]])
 
 
 def face_axes(face_deg: float, loft_deg: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -40,6 +38,9 @@ def face_axes(face_deg: float, loft_deg: float) -> tuple[np.ndarray, np.ndarray,
     return n, toe, up
 
 
+POST_IMPACT_CLUB_SPEED = 0.75  # fraction of club speed kept through impact (roughly)
+
+
 @dataclass
 class SimState:
     """Ground-truth geometry at each flash (for debugging and rendering)."""
@@ -48,7 +49,10 @@ class SimState:
     flash_kinds: list[int]
     ball_centers: list[np.ndarray]
     ball_dots: list[np.ndarray]  # (n,3) world positions
-    club_markers: list[np.ndarray | None]
+    club_markers: list[np.ndarray | None]  # marker positions before impact (what the solver uses)
+    # Face pose (centre, toe axis, up axis, normal) at every flash. After impact the club keeps
+    # going (slower), so ball flashes light it too: the detector has to ignore those images.
+    club_faces: list[tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = None
 
 
 def shot_state(
@@ -78,7 +82,7 @@ def shot_state(
     v_club = truth.club_speed_mps * g.direction(truth.path_deg, truth.attack_deg)
     face_center_at_impact = -BALL_RADIUS_M * n
 
-    centers, dot_pos, markers = [], [], []
+    centers, dot_pos, markers, faces = [], [], [], []
     for t in times:
         tt = t - impact_error_s  # time since the *actual* impact
         moving = tt > 0
@@ -90,8 +94,10 @@ def shot_state(
             fc = face_center_at_impact + v_club * tt
             markers.append(fc + np.outer(FACE_MARKERS_UV[:, 0], toe) + np.outer(FACE_MARKERS_UV[:, 1], fup))
         else:
+            fc = face_center_at_impact + POST_IMPACT_CLUB_SPEED * v_club * tt
             markers.append(None)
-    return SimState(times, kinds, centers, dot_pos, markers)
+        faces.append((fc, toe, fup, n))
+    return SimState(times, kinds, centers, dot_pos, markers, faces)
 
 
 def _ray_hits_ball(origin: np.ndarray, target: np.ndarray, center: np.ndarray) -> bool:
@@ -213,8 +219,52 @@ def render(
                 dark = (nrm @ dot_dirs.T).max(-1) > cos_dot
                 acc += np.where(hit, 180.0 * shade * np.where(dark, 0.2, 1.0), 0.0)
         img[y0:y1, x0:x1] += acc / supersample**2
+    if state.club_faces is not None:
+        for i, face in enumerate(state.club_faces):
+            _render_sticker(img, cam, face, state.ball_centers[i], offs)
     img += rng.normal(8.0, noise, img.shape)
     return np.clip(img, 0, 255).astype(np.uint8)
+
+
+def _render_sticker(img, cam: Camera, face, ball_center, offs) -> None:
+    """Add one flash's image of the club-face sticker (white, black dots), occluded by the ball."""
+    fc, toe, up, n = face
+    u0, v0, u1, v1 = STICKER_RECT
+    corners = np.array([fc + u * toe + v * up for u in (u0, u1) for v in (v0, v1)])
+    uv, depth = cam.project(corners)
+    if (depth <= 0).any():
+        return
+    uv = cam.distort(uv)
+    x0, y0 = np.floor(uv.min(axis=0)).astype(int) - 2
+    x1, y1 = np.ceil(uv.max(axis=0)).astype(int) + 3
+    x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, cam.width), min(y1, cam.height)
+    if x0 >= x1 or y0 >= y1:
+        return
+    o = cam.center
+    if n @ (o - fc) <= 0:
+        return  # seen from behind
+    acc = np.zeros((y1 - y0, x1 - x0), np.float32)
+    r_dot = DOT_DIAMETER_M / 2
+    for dy in offs:
+        for dx in offs:
+            ys, xs = np.mgrid[y0:y1, x0:x1].astype(float)
+            ideal = cam.undistort(np.column_stack([(xs + dx).ravel(), (ys + dy).ravel()])).reshape(*xs.shape, 2)
+            d = np.concatenate([ideal, np.ones((*xs.shape, 1))], -1) @ np.linalg.inv(cam.K).T @ cam.R
+            d /= np.linalg.norm(d, axis=-1, keepdims=True)
+            s = ((fc - o) @ n) / (d @ n)
+            P = o + s[..., None] * d
+            pu, pv = (P - fc) @ toe, (P - fc) @ up
+            inside = (pu >= u0) & (pu <= u1) & (pv >= v0) & (pv <= v1) & (s > 0)
+            dist2 = (pu[..., None] - FACE_MARKERS_UV[:, 0]) ** 2 + (pv[..., None] - FACE_MARKERS_UV[:, 1]) ** 2
+            dot = dist2.min(-1) < r_dot**2
+            # Ball in front of the sticker hides it.
+            oc = o - ball_center
+            b = d @ oc
+            disc = b * b - (oc @ oc - BALL_RADIUS_M**2)
+            blocked = (disc > 0) & (-b - np.sqrt(np.clip(disc, 0, None)) < s)
+            shade = 0.5 + 0.5 * abs(float(n @ (o - fc) / np.linalg.norm(o - fc)))
+            acc += np.where(inside & ~blocked, 170.0 * shade * np.where(dot, 0.12, 1.0), 0.0)
+    img[y0:y1, x0:x1] += acc / len(offs) ** 2
 
 
 def render_board(

@@ -29,7 +29,7 @@ away from a right-handed golfer (toward the unit). Internally everything is SI
 ```
                  target (+x) -->
    golfer (RH)        o ball
-   -z side     [gate2]  [gate1] are spots on the mat 12 and 25 cm behind the ball
+   -z side     [gate2]  [gate1] are spots on the mat 18 and 30 cm behind the ball
                           \
                            \  ~60-70 cm
                             [ UNIT ]  +z side, ~35 cm forward of the ball,
@@ -67,14 +67,16 @@ The cameras are 60 fps global-shutter sensors (about $50). One exposure stays op
 ## Timing (firmware/pico/src/lm_timing.c, mirrored in schedule.py)
 
 1. **Club gates.** Two retro-reflective optical gates (IR emitter + photodiode in the unit,
-   aimed at small retro-reflective dots on the mat at 25 cm and 12 cm behind the ball). The
+   aimed at small retro-reflective dots on the mat at 30 cm and 18 cm behind the ball). The
    clubhead breaks each return beam in turn.
 2. **Club speed and impact time** come from the gate-to-gate time. Impact is predicted
-   assuming constant speed over the last 12 cm.
+   assuming constant speed over the last 18 cm.
 3. **Flash plan:**
-   * 3 club flashes, when the face is 9, 5 and 1.5 cm from the ball. Face angle and loft come
-     from the last one (the face is still closing before that). Path, attack angle and
-     club speed come from all three.
+   * 3 club flashes, when the face is 13, 7.5 and 2 cm from the ball. They're ~5.5 cm apart so
+     the sticker images don't overlap in either camera, which sees them at a steep angle (even
+     so, slow wedge swings can make two touch: the detector splits them). Face angle and loft
+     come from the last one (the face is still closing before that). Path, attack angle and club
+     speed come from all three.
    * 5 ball flashes, spaced so the ball moves about 6 cm (1.4 diameters) between them, based on
      *expected* ball speed (1.35 x club speed). Ball images never overlap, even at a smash
      factor of 1.15 (`tests/test_rig.py`).
@@ -96,8 +98,8 @@ that matter here:
 The trigger opto adds a turn-off delay of up to tens of microseconds at exposure start, and it
 varies between units. The schedule opens the exposure 300 µs before the first flash
 (`exposure_lead_us`). The flashes, not the exposure edges, define when each image is taken, so
-that delay doesn't affect the measurement. Above roughly 150 mph club speed, the earliest club
-flash no longer fits after gate 2, and the shot uses two club flashes.
+that delay doesn't affect the measurement. The first club flash comes 5 cm after gate 2, so it
+fits at every club speed up to the 75 m/s (168 mph) limit.
 
 ## Optics and lighting
 * IMX296: 1456 x 1088, 3.45 µm pixels. With a 6 mm M12 lens at ~65 cm the view is about 55 cm
@@ -117,9 +119,35 @@ flash no longer fits after gate 2, and the shot uses two club flashes.
   marked:** regenerating it makes every marked ball useless.
 * **Ink:** must absorb IR. Use carbon-pigment ink (e.g. Sakura Pigma Micron). Many Sharpie inks
   are invisible at 850 nm, so test under the strobe first.
-* **Club:** 4 matte dots in an asymmetric layout (`FACE_MARKERS_UV` in `sim.py`) on a sticker
-  on the face near the toe. The solver fits this known layout, which is better conditioned
-  than a free plane fit.
+* **Club:** a 32 x 28.5 mm sticker with five 5 mm dots (`src/launchmonitor/markers.py`), on the
+  face near the toe. The layout was searched so that no wrong labelling of the dots fits it
+  under any stretch or skew the oblique camera view produces, with all dots or any one missing.
+  The best wrong fit is 1.2 mm off. Distinct dot-to-dot distances alone weren't enough: an early
+  layout had a re-ordering that fitted to 0.1 mm once stretched. Clubs **must** be marked for
+  face angle and loft. Path and club speed need the sticker too, the way this detector works.
+
+## Club detection (src/launchmonitor/detect.py)
+Each frame holds the sticker three times before impact, plus more images after impact (the club
+keeps moving and the ball flashes light it), some overlapping the ball images. Per camera:
+1. **Balls first, robust to overlaps:** a distance transform finds each ball's centre (only a
+   ball is that thick), and the circle is refitted on its own outline, ignoring attached sticker
+   edges. The resting ball is the biggest saturated disk (every flash lit it). Moving-ball
+   images are given flash numbers from their spacing, so a hidden image shows as a double gap
+   instead of shifting the rest. Inconsistent spacing means that camera's ball data is dropped.
+2. **Stickers:** bright regions left after masking the balls, containing 4-6 dark dots. Touching
+   sticker images are split by clustering their dots.
+3. **Which flash:** stickers *behind* the resting ball (opposite to the ball's flight) are the
+   club before impact, nearest the ball = last club flash. The rest are ignored.
+4. **Which dot:** every assignment is fitted with an affine map. Mirror images are skipped (the
+   cameras only ever see the front), and the best fit must clearly beat the runner-up, or the
+   sticker is dropped.
+5. **3D check:** the triangulated dots must match the printed layout within 1.5 mm, or face
+   angle and loft are not reported.
+
+Over 90 random rendered shots (driver to wedge), no sticker was mislabelled. Club speed came
+out within 0.05 mph rms, path 0.04°, attack 0.01°, face 0.25°, loft 0.25° (`tests/test_club.py`).
+These are rendered frames without real-world glare, specular club heads or worn stickers, so
+real numbers will be worse. The table below models detection noise.
 
 ## Ball-dot matching (src/launchmonitor/dots.py)
 Image detection (`detect.detect_shot`) finds ball images and dark dots but doesn't know which
@@ -151,12 +179,12 @@ laptop; the Pi 5 will be slower. Vectorising or porting the coarse search is the
 
 | Shot | Rig | Ball mph | VLA | HLA | Spin % | Axis | Club mph | Path | Attack | Face | Loft |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| driver | 2-camera | 0.08 | 0.01 | 0.07 | 0.33 | 0.39 | 0.21 | 0.14 | 0.03 | 0.56 | 0.65 |
-| driver | 4-camera | 0.08 | 0.01 | 0.07 | 0.33 | 0.39 | 0.07 | 0.05 | 0.02 | 0.18 | 0.21 |
-| 7-iron | 2-camera | 0.06 | 0.01 | 0.08 | 0.11 | 0.13 | 0.14 | 0.15 | 0.04 | 0.54 | 0.60 |
-| 7-iron | 4-camera | 0.06 | 0.01 | 0.08 | 0.11 | 0.13 | 0.04 | 0.05 | 0.02 | 0.18 | 0.21 |
-| wedge | 2-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.11 | 0.13 | 0.14 | 0.04 | 0.64 | 0.61 |
-| wedge | 4-camera | 0.05 | 0.02 | 0.09 | 0.13 | 0.11 | 0.04 | 0.05 | 0.02 | 0.24 | 0.23 |
+| driver | 2-camera | 0.08 | 0.01 | 0.06 | 0.35 | 0.41 | 0.14 | 0.09 | 0.02 | 0.62 | 0.68 |
+| driver | 4-camera | 0.08 | 0.01 | 0.06 | 0.35 | 0.41 | 0.04 | 0.03 | 0.01 | 0.20 | 0.23 |
+| 7-iron | 2-camera | 0.06 | 0.01 | 0.07 | 0.11 | 0.13 | 0.09 | 0.09 | 0.02 | 0.59 | 0.63 |
+| 7-iron | 4-camera | 0.06 | 0.01 | 0.07 | 0.11 | 0.13 | 0.03 | 0.03 | 0.01 | 0.21 | 0.22 |
+| wedge | 2-camera | 0.05 | 0.02 | 0.09 | 0.14 | 0.13 | 0.09 | 0.09 | 0.02 | 0.71 | 0.64 |
+| wedge | 4-camera | 0.05 | 0.02 | 0.09 | 0.14 | 0.13 | 0.03 | 0.03 | 0.01 | 0.27 | 0.24 |
 
 These are lower bounds. Real error will be higher, mostly from calibration, lens distortion,
 detection bias and timing jitter, none of which are modelled yet.
@@ -204,8 +232,13 @@ the views consistent (along the epipolar lines), but catches most bumps.
   under the jig's solid area. UNVERIFIED on hardware.
 * **High-spin aliasing:** wedges at 10,000 rpm turn about 90° between flashes. That's fine, but
   close to the 180° limit at low ball speed. Could add one extra closely spaced flash pair.
-* **Club and ball overlap at impact:** the last club flash is 1.5 cm before contact. Check on
+* **Club and ball overlap at impact:** the last club flash is 2 cm before contact. Check on
   real frames that stickers aren't hidden by the ball (the simulator ray-tests this).
+* **Driver/wood face curvature:** woods have a curved face (bulge), so a sticker on the toe side
+  sits on a part of the face that points a few degrees more open than the centre (~3-4° on a
+  driver). Irons are flat. Needs a per-club face-angle offset (a "club profile"), not yet built.
+* **Shiny club heads:** a chrome head can throw bright specular glints. They have no dot pattern,
+  so they shouldn't pass as stickers, but they could merge with a sticker image. UNVERIFIED.
 * **Face closure:** the face keeps closing (roughly 0.5-1° at typical closure rates) between the last flash and impact. Correct it
   by extrapolating the face rotation from the three club flashes.
 * **GSPro sign conventions:** verify on first hookup.

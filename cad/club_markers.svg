@@ -1,102 +1,151 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="172.0mm" height="151.0mm" viewBox="0 0 172.0 151.0">
+<svg xmlns="http://www.w3.org/2000/svg" width="188.0mm" height="210.0mm" viewBox="0 0 188.0 210.0">
 <rect width="100%" height="100%" fill="white"/>
-<text x="10" y="8" font-family="sans-serif" font-size="4">Club face markers - print at 100% on matte white sticker paper; check the 50 mm bar. Place near the toe, arrow toward toe, face grooves level.</text>
-<line x1="10" y1="14" x2="60" y2="14" stroke="black" stroke-width="0.6"/>
-<text x="62" y="15.5" font-family="sans-serif" font-size="3.5">50 mm</text>
-<rect x="10.00" y="22.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="14.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="36.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="14.000" cy="39.000" r="1.5" fill="black"/>
-<circle cx="32.000" cy="41.000" r="1.5" fill="black"/>
-<line x1="12.00" y1="49.00" x2="36.00" y2="49.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="36.00,47.80 39.00,49.00 36.00,50.20" fill="#666"/>
-<text x="12.00" y="53.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="48.00" y="22.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="52.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="74.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="52.000" cy="39.000" r="1.5" fill="black"/>
-<circle cx="70.000" cy="41.000" r="1.5" fill="black"/>
-<line x1="50.00" y1="49.00" x2="74.00" y2="49.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="74.00,47.80 77.00,49.00 74.00,50.20" fill="#666"/>
-<text x="50.00" y="53.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="86.00" y="22.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="90.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="112.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="90.000" cy="39.000" r="1.5" fill="black"/>
-<circle cx="108.000" cy="41.000" r="1.5" fill="black"/>
-<line x1="88.00" y1="49.00" x2="112.00" y2="49.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="112.00,47.80 115.00,49.00 112.00,50.20" fill="#666"/>
-<text x="88.00" y="53.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="124.00" y="22.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="128.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="150.000" cy="26.000" r="1.5" fill="black"/>
-<circle cx="128.000" cy="39.000" r="1.5" fill="black"/>
-<circle cx="146.000" cy="41.000" r="1.5" fill="black"/>
-<line x1="126.00" y1="49.00" x2="150.00" y2="49.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="150.00,47.80 153.00,49.00 150.00,50.20" fill="#666"/>
-<text x="126.00" y="53.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="10.00" y="59.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="14.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="36.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="14.000" cy="76.000" r="1.5" fill="black"/>
-<circle cx="32.000" cy="78.000" r="1.5" fill="black"/>
-<line x1="12.00" y1="86.00" x2="36.00" y2="86.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="36.00,84.80 39.00,86.00 36.00,87.20" fill="#666"/>
-<text x="12.00" y="90.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="48.00" y="59.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="52.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="74.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="52.000" cy="76.000" r="1.5" fill="black"/>
-<circle cx="70.000" cy="78.000" r="1.5" fill="black"/>
-<line x1="50.00" y1="86.00" x2="74.00" y2="86.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="74.00,84.80 77.00,86.00 74.00,87.20" fill="#666"/>
-<text x="50.00" y="90.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="86.00" y="59.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="90.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="112.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="90.000" cy="76.000" r="1.5" fill="black"/>
-<circle cx="108.000" cy="78.000" r="1.5" fill="black"/>
-<line x1="88.00" y1="86.00" x2="112.00" y2="86.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="112.00,84.80 115.00,86.00 112.00,87.20" fill="#666"/>
-<text x="88.00" y="90.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="124.00" y="59.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="128.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="150.000" cy="63.000" r="1.5" fill="black"/>
-<circle cx="128.000" cy="76.000" r="1.5" fill="black"/>
-<circle cx="146.000" cy="78.000" r="1.5" fill="black"/>
-<line x1="126.00" y1="86.00" x2="150.00" y2="86.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="150.00,84.80 153.00,86.00 150.00,87.20" fill="#666"/>
-<text x="126.00" y="90.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="10.00" y="96.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="14.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="36.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="14.000" cy="113.000" r="1.5" fill="black"/>
-<circle cx="32.000" cy="115.000" r="1.5" fill="black"/>
-<line x1="12.00" y1="123.00" x2="36.00" y2="123.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="36.00,121.80 39.00,123.00 36.00,124.20" fill="#666"/>
-<text x="12.00" y="127.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="48.00" y="96.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="52.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="74.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="52.000" cy="113.000" r="1.5" fill="black"/>
-<circle cx="70.000" cy="115.000" r="1.5" fill="black"/>
-<line x1="50.00" y1="123.00" x2="74.00" y2="123.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="74.00,121.80 77.00,123.00 74.00,124.20" fill="#666"/>
-<text x="50.00" y="127.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="86.00" y="96.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="90.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="112.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="90.000" cy="113.000" r="1.5" fill="black"/>
-<circle cx="108.000" cy="115.000" r="1.5" fill="black"/>
-<line x1="88.00" y1="123.00" x2="112.00" y2="123.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="112.00,121.80 115.00,123.00 112.00,124.20" fill="#666"/>
-<text x="88.00" y="127.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
-<rect x="124.00" y="96.00" width="30.00" height="23.00" rx="2" fill="none" stroke="#bbb" stroke-width="0.2"/>
-<circle cx="128.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="150.000" cy="100.000" r="1.5" fill="black"/>
-<circle cx="128.000" cy="113.000" r="1.5" fill="black"/>
-<circle cx="146.000" cy="115.000" r="1.5" fill="black"/>
-<line x1="126.00" y1="123.00" x2="150.00" y2="123.00" stroke="#666" stroke-width="0.4"/>
-<polygon points="150.00,121.80 153.00,123.00 150.00,124.20" fill="#666"/>
-<text x="126.00" y="127.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<text x="10" y="8" font-family="sans-serif" font-size="3.6">Club face stickers: print at 100% on matte white sticker paper (check the 50 mm bar), cut on the grey line.</text>
+<text x="10" y="13" font-family="sans-serif" font-size="3">Right-handed clubs. Stick flat on the face, toe side, arrow toward the toe, inner edge about 3.5 mm toe-side of the face centre. Rotation doesn't matter.</text>
+<line x1="10" y1="18" x2="60" y2="18" stroke="black" stroke-width="0.6"/>
+<text x="62" y="19.5" font-family="sans-serif" font-size="3">50 mm</text>
+<rect x="10.00" y="26.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="36.500" cy="47.000" r="2.5" fill="black"/>
+<circle cx="36.000" cy="32.500" r="2.5" fill="black"/>
+<circle cx="15.500" cy="31.500" r="2.5" fill="black"/>
+<circle cx="28.000" cy="42.500" r="2.5" fill="black"/>
+<circle cx="20.000" cy="49.000" r="2.5" fill="black"/>
+<line x1="14.00" y1="58.50" x2="40.00" y2="58.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="14.00,57.30 11.00,58.50 14.00,59.70" fill="#666"/>
+<text x="34.00" y="62.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="52.00" y="26.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="78.500" cy="47.000" r="2.5" fill="black"/>
+<circle cx="78.000" cy="32.500" r="2.5" fill="black"/>
+<circle cx="57.500" cy="31.500" r="2.5" fill="black"/>
+<circle cx="70.000" cy="42.500" r="2.5" fill="black"/>
+<circle cx="62.000" cy="49.000" r="2.5" fill="black"/>
+<line x1="56.00" y1="58.50" x2="82.00" y2="58.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="56.00,57.30 53.00,58.50 56.00,59.70" fill="#666"/>
+<text x="76.00" y="62.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="94.00" y="26.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="120.500" cy="47.000" r="2.5" fill="black"/>
+<circle cx="120.000" cy="32.500" r="2.5" fill="black"/>
+<circle cx="99.500" cy="31.500" r="2.5" fill="black"/>
+<circle cx="112.000" cy="42.500" r="2.5" fill="black"/>
+<circle cx="104.000" cy="49.000" r="2.5" fill="black"/>
+<line x1="98.00" y1="58.50" x2="124.00" y2="58.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="98.00,57.30 95.00,58.50 98.00,59.70" fill="#666"/>
+<text x="118.00" y="62.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="136.00" y="26.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="162.500" cy="47.000" r="2.5" fill="black"/>
+<circle cx="162.000" cy="32.500" r="2.5" fill="black"/>
+<circle cx="141.500" cy="31.500" r="2.5" fill="black"/>
+<circle cx="154.000" cy="42.500" r="2.5" fill="black"/>
+<circle cx="146.000" cy="49.000" r="2.5" fill="black"/>
+<line x1="140.00" y1="58.50" x2="166.00" y2="58.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="140.00,57.30 137.00,58.50 140.00,59.70" fill="#666"/>
+<text x="160.00" y="62.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="10.00" y="68.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="36.500" cy="89.500" r="2.5" fill="black"/>
+<circle cx="36.000" cy="75.000" r="2.5" fill="black"/>
+<circle cx="15.500" cy="74.000" r="2.5" fill="black"/>
+<circle cx="28.000" cy="85.000" r="2.5" fill="black"/>
+<circle cx="20.000" cy="91.500" r="2.5" fill="black"/>
+<line x1="14.00" y1="101.00" x2="40.00" y2="101.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="14.00,99.80 11.00,101.00 14.00,102.20" fill="#666"/>
+<text x="34.00" y="105.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="52.00" y="68.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="78.500" cy="89.500" r="2.5" fill="black"/>
+<circle cx="78.000" cy="75.000" r="2.5" fill="black"/>
+<circle cx="57.500" cy="74.000" r="2.5" fill="black"/>
+<circle cx="70.000" cy="85.000" r="2.5" fill="black"/>
+<circle cx="62.000" cy="91.500" r="2.5" fill="black"/>
+<line x1="56.00" y1="101.00" x2="82.00" y2="101.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="56.00,99.80 53.00,101.00 56.00,102.20" fill="#666"/>
+<text x="76.00" y="105.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="94.00" y="68.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="120.500" cy="89.500" r="2.5" fill="black"/>
+<circle cx="120.000" cy="75.000" r="2.5" fill="black"/>
+<circle cx="99.500" cy="74.000" r="2.5" fill="black"/>
+<circle cx="112.000" cy="85.000" r="2.5" fill="black"/>
+<circle cx="104.000" cy="91.500" r="2.5" fill="black"/>
+<line x1="98.00" y1="101.00" x2="124.00" y2="101.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="98.00,99.80 95.00,101.00 98.00,102.20" fill="#666"/>
+<text x="118.00" y="105.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="136.00" y="68.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="162.500" cy="89.500" r="2.5" fill="black"/>
+<circle cx="162.000" cy="75.000" r="2.5" fill="black"/>
+<circle cx="141.500" cy="74.000" r="2.5" fill="black"/>
+<circle cx="154.000" cy="85.000" r="2.5" fill="black"/>
+<circle cx="146.000" cy="91.500" r="2.5" fill="black"/>
+<line x1="140.00" y1="101.00" x2="166.00" y2="101.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="140.00,99.80 137.00,101.00 140.00,102.20" fill="#666"/>
+<text x="160.00" y="105.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="10.00" y="111.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="36.500" cy="132.000" r="2.5" fill="black"/>
+<circle cx="36.000" cy="117.500" r="2.5" fill="black"/>
+<circle cx="15.500" cy="116.500" r="2.5" fill="black"/>
+<circle cx="28.000" cy="127.500" r="2.5" fill="black"/>
+<circle cx="20.000" cy="134.000" r="2.5" fill="black"/>
+<line x1="14.00" y1="143.50" x2="40.00" y2="143.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="14.00,142.30 11.00,143.50 14.00,144.70" fill="#666"/>
+<text x="34.00" y="147.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="52.00" y="111.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="78.500" cy="132.000" r="2.5" fill="black"/>
+<circle cx="78.000" cy="117.500" r="2.5" fill="black"/>
+<circle cx="57.500" cy="116.500" r="2.5" fill="black"/>
+<circle cx="70.000" cy="127.500" r="2.5" fill="black"/>
+<circle cx="62.000" cy="134.000" r="2.5" fill="black"/>
+<line x1="56.00" y1="143.50" x2="82.00" y2="143.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="56.00,142.30 53.00,143.50 56.00,144.70" fill="#666"/>
+<text x="76.00" y="147.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="94.00" y="111.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="120.500" cy="132.000" r="2.5" fill="black"/>
+<circle cx="120.000" cy="117.500" r="2.5" fill="black"/>
+<circle cx="99.500" cy="116.500" r="2.5" fill="black"/>
+<circle cx="112.000" cy="127.500" r="2.5" fill="black"/>
+<circle cx="104.000" cy="134.000" r="2.5" fill="black"/>
+<line x1="98.00" y1="143.50" x2="124.00" y2="143.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="98.00,142.30 95.00,143.50 98.00,144.70" fill="#666"/>
+<text x="118.00" y="147.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="136.00" y="111.00" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="162.500" cy="132.000" r="2.5" fill="black"/>
+<circle cx="162.000" cy="117.500" r="2.5" fill="black"/>
+<circle cx="141.500" cy="116.500" r="2.5" fill="black"/>
+<circle cx="154.000" cy="127.500" r="2.5" fill="black"/>
+<circle cx="146.000" cy="134.000" r="2.5" fill="black"/>
+<line x1="140.00" y1="143.50" x2="166.00" y2="143.50" stroke="#666" stroke-width="0.4"/>
+<polygon points="140.00,142.30 137.00,143.50 140.00,144.70" fill="#666"/>
+<text x="160.00" y="147.50" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="10.00" y="153.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="36.500" cy="174.500" r="2.5" fill="black"/>
+<circle cx="36.000" cy="160.000" r="2.5" fill="black"/>
+<circle cx="15.500" cy="159.000" r="2.5" fill="black"/>
+<circle cx="28.000" cy="170.000" r="2.5" fill="black"/>
+<circle cx="20.000" cy="176.500" r="2.5" fill="black"/>
+<line x1="14.00" y1="186.00" x2="40.00" y2="186.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="14.00,184.80 11.00,186.00 14.00,187.20" fill="#666"/>
+<text x="34.00" y="190.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="52.00" y="153.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="78.500" cy="174.500" r="2.5" fill="black"/>
+<circle cx="78.000" cy="160.000" r="2.5" fill="black"/>
+<circle cx="57.500" cy="159.000" r="2.5" fill="black"/>
+<circle cx="70.000" cy="170.000" r="2.5" fill="black"/>
+<circle cx="62.000" cy="176.500" r="2.5" fill="black"/>
+<line x1="56.00" y1="186.00" x2="82.00" y2="186.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="56.00,184.80 53.00,186.00 56.00,187.20" fill="#666"/>
+<text x="76.00" y="190.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="94.00" y="153.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="120.500" cy="174.500" r="2.5" fill="black"/>
+<circle cx="120.000" cy="160.000" r="2.5" fill="black"/>
+<circle cx="99.500" cy="159.000" r="2.5" fill="black"/>
+<circle cx="112.000" cy="170.000" r="2.5" fill="black"/>
+<circle cx="104.000" cy="176.500" r="2.5" fill="black"/>
+<line x1="98.00" y1="186.00" x2="124.00" y2="186.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="98.00,184.80 95.00,186.00 98.00,187.20" fill="#666"/>
+<text x="118.00" y="190.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
+<rect x="136.00" y="153.50" width="32.00" height="28.50" rx="1.5" fill="none" stroke="#bbb" stroke-width="0.25"/>
+<circle cx="162.500" cy="174.500" r="2.5" fill="black"/>
+<circle cx="162.000" cy="160.000" r="2.5" fill="black"/>
+<circle cx="141.500" cy="159.000" r="2.5" fill="black"/>
+<circle cx="154.000" cy="170.000" r="2.5" fill="black"/>
+<circle cx="146.000" cy="176.500" r="2.5" fill="black"/>
+<line x1="140.00" y1="186.00" x2="166.00" y2="186.00" stroke="#666" stroke-width="0.4"/>
+<polygon points="140.00,184.80 137.00,186.00 140.00,187.20" fill="#666"/>
+<text x="160.00" y="190.00" font-family="sans-serif" font-size="2.5" fill="#666">TOE</text>
 </svg>

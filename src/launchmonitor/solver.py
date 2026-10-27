@@ -20,9 +20,11 @@ from .flight import carry_distance
 from .models import MPS_TO_MPH, RADPS_TO_RPM, ShotObservation, ShotResult
 from .rig import Rig
 from .schedule import FLASH_BALL, FLASH_CLUB
-from .sim import FACE_MARKERS_UV
+from .markers import FACE_MARKERS_UV
 
 MIN_COMMON_DOTS = 4
+# Triangulated sticker dots must match the printed layout this closely (rms), or the face is not reported.
+MAX_STICKER_FIT_M = 0.0015
 
 
 def _triangulated(obs: ShotObservation, cams: dict[str, Camera], kind: str) -> dict[tuple[int, int], np.ndarray]:
@@ -97,8 +99,12 @@ def solve(obs: ShotObservation, rig: Rig, with_carry: bool = True) -> ShotResult
         model = np.column_stack([FACE_MARKERS_UV[ids], np.zeros(len(ids))])
         pts = np.array([last[i] for i in ids])
         R = g.kabsch(model - model.mean(axis=0), pts - pts.mean(axis=0))
-        n = R @ np.array([0.0, 0.0, -1.0])  # face (u=toe, v=up) is left-handed w.r.t. its normal
-        res.face_deg, res.loft_deg = g.angles(n)
+        fit_rms = float(np.sqrt(np.mean(np.sum(((model - model.mean(axis=0)) @ R.T - (pts - pts.mean(axis=0))) ** 2, axis=1))))
+        if fit_rms > MAX_STICKER_FIT_M:  # 3D dots don't match the sticker: a label or match went wrong
+            res.warnings.append(f"club sticker fit off by {fit_rms * 1000:.1f} mm: face angle and loft not reported")
+        else:
+            n = R @ np.array([0.0, 0.0, -1.0])  # face (u=toe, v=up) is left-handed w.r.t. its normal
+            res.face_deg, res.loft_deg = g.angles(n)
         # Path from the motion of markers common to every club flash.
         common = set.intersection(*(set(by_flash[f]) for f in club_flashes))
         if len(club_flashes) >= 2 and common:

@@ -70,6 +70,17 @@ fixed, so don't regenerate it.
 
 ## Club markers
 
-`cad/club_markers.svg` has 12 sets of 4 dots. Print at 100% and check the 50 mm bar. Cut out
-one set and stick it on the face **near the toe**, arrow toward the toe, with the dot rows
-parallel to the grooves. Keep it clear of the ball's contact patch, or the sticker wears fast.
+Every club you want club data from needs one. `cad/club_markers.svg` has 16 stickers
+(32 x 28.5 mm, five 5 mm dots). Print at 100% on matte white sticker paper and check the
+50 mm bar.
+
+* Stick it **flat on the face, on the toe side**, arrow toward the toe, inner edge about 3.5 mm
+  toe-side of the face centre (the middle of the grooves). It must sit flat: lay it across the
+  grooves, not into them.
+* Rotation doesn't matter: face angle comes from the sticker's tilt, not which way it's turned.
+* **Don't mirror it.** The sheet is printed as the face looks from the front (from the
+  target), toe on the left, for right-handed clubs. Don't print it with "mirror" or "flip" on.
+* Matte paper, not glossy: a shiny sticker throws glare under the flash.
+* The dots must be black under 850 nm. Laser toner and most inkjet black inks are; check one
+  under the strobe.
+* Replace stickers when the edges lift or the white scuffs.

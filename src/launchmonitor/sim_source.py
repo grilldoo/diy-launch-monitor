@@ -52,7 +52,7 @@ class SimulatedLaunchMonitor:
         R0 = g.rotvec_to_matrix(q / np.linalg.norm(q) * self.rng.uniform(0, np.pi))
         impact_err = self.rng.normal(0, 60e-6)
         st = shot_state(truth, self.timing, impact_err, initial_orientation=R0)
-        self._frames = {c.name: render(st, c, self.rng) for c in self.rig.ball_cams}
+        self._frames = {c.name: render(st, c, self.rng) for c in self.rig.cameras}
         self.last_truth = truth
         return PicoShot(truth.club_speed_mps, list(st.flash_times_s), list(st.flash_kinds), (0.0, 0.0))
 

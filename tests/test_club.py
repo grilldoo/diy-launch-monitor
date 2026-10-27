@@ -10,7 +10,7 @@ from launchmonitor.markers import FACE_MARKERS_UV, STICKER_RECT
 from launchmonitor.models import MPS_TO_MPH, ShotTruth
 from launchmonitor.pico_link import PicoShot
 from launchmonitor.pipeline import process_shot
-from launchmonitor.rig import two_camera_rig
+from launchmonitor.rig import four_camera_rig, two_camera_rig
 from launchmonitor.sim import render, shot_state
 from launchmonitor.sim_source import SimulatedLaunchMonitor
 
@@ -80,24 +80,26 @@ def test_flash_steps_survive_missing_images():
     assert assign_flash_steps([60, 90, 183], 5) is None  # nonsense spacing: refuse
 
 
+@pytest.mark.parametrize("rig_fn", [two_camera_rig, four_camera_rig], ids=["2cam", "4cam"])
 @pytest.mark.parametrize("name", SHOTS)
-def test_club_data_from_pixels(name):
+def test_club_data_from_pixels(name, rig_fn):
     t = SHOTS[name]
-    rig = two_camera_rig()
+    rig = rig_fn()
     st = shot_state(t)
-    frames = {c.name: render(st, c, np.random.default_rng(2)) for c in rig.ball_cams}
+    frames = {c.name: render(st, c, np.random.default_rng(2)) for c in rig.cameras}
     obs, r = process_shot(frames, PicoShot(t.club_speed_mps, st.flash_times_s, st.flash_kinds, (0, 0)), rig)
     markers = [d for d in obs.detections if d.kind == "marker"]
-    assert len(markers) >= 25  # 3 flashes x 2 cameras x 5 dots, minus the odd hidden dot
-    cams = {c.name: c for c in rig.ball_cams}
+    assert len(markers) >= 25 * len(rig.cameras) // 2  # 3 flashes x 5 dots per camera, minus the odd hidden dot
+    cams = {c.name: c for c in rig.cameras}
     for d in markers:  # every label is the right dot
         assert np.linalg.norm(cams[d.camera].project(st.club_markers[d.flash][d.id][None])[0][0] - d.uv) < 1.5
     assert not r.warnings, r.warnings
     assert r.club_speed_mph == pytest.approx(t.club_speed_mps * MPS_TO_MPH, abs=0.5)
     assert r.path_deg == pytest.approx(t.path_deg, abs=0.4)
     assert r.attack_deg == pytest.approx(t.attack_deg, abs=0.2)
-    assert r.face_deg == pytest.approx(t.face_deg, abs=1.0)
-    assert r.loft_deg == pytest.approx(t.loft_deg, abs=1.5)
+    tol = 1.0 if rig_fn is two_camera_rig else 0.5  # the club pair's closer view halves the error
+    assert r.face_deg == pytest.approx(t.face_deg, abs=tol)
+    assert r.loft_deg == pytest.approx(t.loft_deg, abs=1.5 * tol)
 
 
 def test_random_shots_never_report_wrong_club_data():

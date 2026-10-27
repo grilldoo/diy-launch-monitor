@@ -171,7 +171,8 @@ def render(
 ) -> np.ndarray:
     """Render one multi-exposure 8-bit frame: every flash adds a lit ball with dark dots.
 
-    Rays are traced against the sphere, so dots foreshorten correctly toward the limb.
+    Rays are traced against the sphere, so dots foreshorten correctly toward the limb, and
+    through the camera's lens distortion, so the frames match what a real lens produces.
     The strobe sits next to the cameras, so shading follows the view angle. The resting
     ball is lit by every pre-impact flash and saturates. Not photorealistic, but
     geometrically faithful.
@@ -188,7 +189,7 @@ def render(
         if depth[0] <= 0:
             continue
         r_px = cam.K[0, 0] * BALL_RADIUS_M / depth[0]
-        u0, v0 = uv[0]
+        u0, v0 = cam.distort(uv)[0]  # where the ball lands on the real (distorted) sensor
         x0, x1 = int(max(u0 - r_px - 3, 0)), int(min(u0 + r_px + 4, cam.width))
         y0, y1 = int(max(v0 - r_px - 3, 0)), int(min(v0 + r_px + 4, cam.height))
         if x0 >= x1 or y0 >= y1:
@@ -198,7 +199,8 @@ def render(
         for dy in offs:
             for dx in offs:
                 ys, xs = np.mgrid[y0:y1, x0:x1].astype(float)
-                pix = np.stack([xs + dx, ys + dy, np.ones_like(xs)], -1)
+                ideal = cam.undistort(np.column_stack([(xs + dx).ravel(), (ys + dy).ravel()])).reshape(*xs.shape, 2)
+                pix = np.concatenate([ideal, np.ones((*xs.shape, 1))], -1)
                 d = pix @ Kinv.T @ cam.R
                 d /= np.linalg.norm(d, axis=-1, keepdims=True)
                 oc = o - c
@@ -212,4 +214,40 @@ def render(
                 acc += np.where(hit, 180.0 * shade * np.where(dark, 0.2, 1.0), 0.0)
         img[y0:y1, x0:x1] += acc / supersample**2
     img += rng.normal(8.0, noise, img.shape)
+    return np.clip(img, 0, 255).astype(np.uint8)
+
+
+def render_board(
+    cam: Camera, board, R_wb: np.ndarray, t_wb: np.ndarray, rng: np.random.Generator | None = None
+) -> np.ndarray:
+    """Render a calibration.Board (ChArUco) at pose X_w = R_wb @ X_b + t_wb, through the
+    camera's lens distortion. The board has one square of white margin; the background is dark.
+    """
+    import cv2
+
+    rng = rng or np.random.default_rng(0)
+    px_mm = 8.0
+    margin = board.square_m
+    tex = board.image(px_mm)
+    pad = int(round(margin * 1000 * px_mm))
+    tex = cv2.copyMakeBorder(tex, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=255)
+    tex = tex.astype(np.float32) * (200 / 255) + 25
+    tex = cv2.GaussianBlur(tex, (0, 0), 1.2)  # texture is ~3x finer than a camera pixel: pre-filter
+
+    ys, xs = np.mgrid[0 : cam.height, 0 : cam.width].astype(np.float64)
+    ideal = cam.undistort(np.column_stack([xs.ravel(), ys.ravel()]))
+    rays = np.column_stack([ideal, np.ones(len(ideal))]) @ np.linalg.inv(cam.K).T  # camera frame
+    # Board plane in camera frame: X_c = R_cb X_b + t_cb, plane z_b = 0.
+    R_cb = cam.R @ R_wb
+    t_cb = cam.R @ t_wb + cam.t
+    n = R_cb[:, 2]
+    s = (n @ t_cb) / (rays @ n)
+    Xc = rays * s[:, None]
+    Xb = (Xc - t_cb) @ R_cb  # back to board frame
+    mx = ((Xb[:, 0] + margin) * 1000 * px_mm).astype(np.float32).reshape(cam.height, cam.width)
+    my = ((Xb[:, 1] + margin) * 1000 * px_mm).astype(np.float32).reshape(cam.height, cam.width)
+    behind = (s <= 0).reshape(cam.height, cam.width)
+    mx[behind] = -1
+    img = cv2.remap(tex, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=18)
+    img += rng.normal(0, 2.0, img.shape)
     return np.clip(img, 0, 255).astype(np.uint8)

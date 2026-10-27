@@ -9,16 +9,19 @@ GC3 / GCQuad. It sits beside the ball, needs no in-bay calibration, and sends ba
 * **Hardware:** Raspberry Pi 5, InnoMaker IMX296 mono global-shutter cameras, IR strobe, Pi Pico 2 timing controller
 * **Cost:** about $565 for 2 cameras; about $865 for the GCQuad-style 4-camera build
 
-> Status: **pre-hardware.** The simulator, image detection, ball-dot matching, solver, flight
-> model, GSPro client and Pico timing firmware are written and tested against synthetic shots
-> and rendered frames. Printable parts are in `cad/stl/`. Nothing has run on real hardware yet.
-> Camera capture and calibration come next.
+> Status: **pre-hardware.** Everything from camera capture to GSPro is written: Pico timing
+> firmware, capture, ChArUco stereo calibration, image detection, ball-dot matching, solver,
+> flight model, and the GSPro loop with shot saving and replay. All of it is tested against
+> simulated shots and rendered frames, including lens distortion. Printable parts are in
+> `cad/stl/`. Nothing has run on real hardware yet. Club-marker detection in images is the
+> main missing piece: club data is solved from simulated detections, not yet from pixels.
 
 ## Docs
 * [Design](docs/design.md): how it works, conventions, timing, simulated accuracy, risks
 * [Bill of materials](docs/bom.md)
 * [Wiring](docs/wiring.md)
 * [3D printing](docs/printing.md): ball-marking jig, camera mounts, club marker stickers
+* [Pi setup and first run](docs/pi-setup.md): OS, cameras, calibration, GSPro
 
 ## Repo layout
 ```
@@ -33,7 +36,14 @@ src/launchmonitor/   Python package that runs on the Pi
   solver.py          detections -> ball, spin and club data
   flight.py          ball-flight model (carry)
   gspro.py           GSPro Open Connect v1 client
-  pico_link.py       parse Pico serial output
+  pico_link.py       Pico serial link
+  capture.py         picamera2 capture in trigger mode, frame pairing
+  imx296.py          camera trigger-mode registers over I2C
+  calibration.py     ChArUco intrinsics, stereo and aim calibration
+  pipeline.py        frames -> result, save/replay shots
+  app.py             main loop (Pico -> cameras -> solver -> GSPro)
+  sim_source.py      simulated Pico + cameras for running everything off-hardware
+  __main__.py        CLI: run, replay, calib, trigger
 firmware/pico/       Pico 2 timing controller (C, Pico SDK)
   host/              host-built unit tests + schedule CLI (no SDK needed)
 cad/                 OpenSCAD sources, generated includes, STLs, club marker sheet
@@ -49,6 +59,7 @@ pytest                                  # Python tests (also builds/compares the
 make -C firmware/pico/host test         # C unit tests on the host
 python tools/accuracy_study.py          # accuracy table in docs/design.md
 python tools/export_cad.py              # regenerate cad/ outputs (needs openscad)
+python -m launchmonitor run --sim       # whole app with simulated shots (add --gspro HOST to test GSPro)
 ```
 
 Firmware for the Pico 2:

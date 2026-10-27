@@ -10,6 +10,8 @@ simulator (`src/launchmonitor/sim.py`) or with recorded shot data.
 - `python tools/accuracy_study.py`: regenerate the accuracy table in docs/design.md when the solver or rig changes
 - `python tools/export_cad.py`: regenerate `cad/generated/`, `cad/stl/` and `cad/club_markers.svg` after changing the rig, `FACE_MARKERS_UV` or a `.scad` file (needs `openscad`; `tests/test_cad.py` catches stale generated includes)
 
+- `python -m launchmonitor replay shots/<dir> [--sim]`: re-run a saved real (or simulated) shot. Bug reports from hardware sessions should come with the shot folder; reproduce with replay, fix, and add the folder as a test fixture when it's small enough.
+
 ## Conventions
 - World frame: origin at ball centre, +x target, +y up, +z away from a right-handed golfer. Sign conventions are in docs/design.md; keep the solver, sim and GSPro output consistent with them.
 - SI units internally; convert to mph / rpm / yd / degrees only in results.

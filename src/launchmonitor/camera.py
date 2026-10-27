@@ -7,8 +7,9 @@ Camera frame follows OpenCV: +x right, +y down, +z forward.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+import cv2
 import numpy as np
 
 
@@ -20,6 +21,25 @@ class Camera:
     t: np.ndarray  # (3,) world -> camera translation
     width: int
     height: int
+    # OpenCV distortion coefficients (k1, k2, p1, p2, k3). Simulated cameras have none.
+    # Real detections are undistorted first, so everything downstream is pinhole.
+    dist: np.ndarray = field(default_factory=lambda: np.zeros(5))
+
+    def undistort(self, uv: np.ndarray) -> np.ndarray:
+        """Distorted pixel coordinates (N,2) -> ideal pinhole pixel coordinates."""
+        uv = np.atleast_2d(np.asarray(uv, float))
+        if not np.any(self.dist):
+            return uv
+        return cv2.undistortPoints(uv.reshape(-1, 1, 2), self.K, self.dist, P=self.K).reshape(-1, 2)
+
+    def distort(self, uv: np.ndarray) -> np.ndarray:
+        """Inverse of undistort(): where an ideal pinhole pixel lands on the real sensor."""
+        uv = np.atleast_2d(np.asarray(uv, float))
+        if not np.any(self.dist):
+            return uv
+        rays = np.column_stack([uv, np.ones(len(uv))]) @ np.linalg.inv(self.K).T
+        out, _ = cv2.projectPoints(rays, np.zeros(3), np.zeros(3), self.K, self.dist)
+        return out.reshape(-1, 2)
 
     @property
     def P(self) -> np.ndarray:

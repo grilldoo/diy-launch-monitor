@@ -47,7 +47,7 @@ checks that every club and ball position the solver needs is in frame.
  3S Li-ion pack (BMS) --+-- 5V/5A buck --> Raspberry Pi 5 (8GB)  [+ 2nd Pi 5 in stage 2]
                         +-- 12V rail + capacitor bank --> LED driver --> 12x 850 nm IR LEDs
  Pi 5
-  |- CSI0/CSI1 --> Global Shutter cameras (IMX296), 850 nm bandpass filters
+  |- CSI0/CSI1 --> InnoMaker IMX296 mono global-shutter cameras, 850 nm bandpass filters
   |- USB ------> Pico 2: gates in, camera triggers + strobe out (microsecond timing)
   |- I2C ------> IMU (auto-level)
   `- Wi-Fi ----> GSPro (Open Connect, TCP 921) / phone web page
@@ -83,16 +83,24 @@ The cameras are 60 fps global-shutter sensors (about $50). One exposure stays op
 5. The Pico prints the actual schedule as JSON. The solver uses those times, so the
    impact-prediction error only shifts flash timing; it doesn't corrupt the measurement.
 
-### Camera trigger
-The Pi Global Shutter camera supports external trigger through its XTR pad: the pulse width
-sets the exposure. Per Raspberry Pi's documentation this needs a small hardware change on
-each camera board (removing one SMD resistor and soldering wires to XTR and GND), and the
-signal is 1.8 V logic. **That's the hardest soldering job in the build.** Follow the official
-GS camera external-trigger instructions exactly. `CAM_TRIG_ACTIVE_LOW` in `main.c` must be
-checked on the bench.
+### Cameras and trigger
+The cameras are **InnoMaker CAM-IMX296Mono-GS** boards: the same Sony IMX296 global-shutter
+sensor as the official Pi GS camera, and the same Raspberry Pi kernel driver. The differences
+that matter here:
+* **Mono sensor with no IR-cut filter.** The official GS camera is colour with a fixed IR-cut
+  filter, which blocks the 850 nm strobe.
+* **Opto-isolated hardware trigger on a pin header (J3).** No board modification, unlike the
+  official camera's XTR pad. Wiring is in docs/wiring.md.
+* M12 lens mount (a CS seat is included). Lenses must not have an IR-cut filter.
+
+The trigger opto adds a turn-off delay of up to tens of microseconds at exposure start, and it
+varies between units. The schedule opens the exposure 300 µs before the first flash
+(`exposure_lead_us`). The flashes, not the exposure edges, define when each image is taken, so
+that delay doesn't affect the measurement. Above roughly 150 mph club speed, the earliest club
+flash no longer fits after gate 2, and the shot uses two club flashes.
 
 ## Optics and lighting
-* IMX296: 1456 x 1088, 3.45 µm pixels. With a 6 mm lens at ~65 cm the view is about 55 cm
+* IMX296: 1456 x 1088, 3.45 µm pixels. With a 6 mm M12 lens at ~65 cm the view is about 55 cm
   wide at 0.37 mm/px. A ball is about 115 px across.
 * 850 nm bandpass filters reject most indoor light. Gate emitters are 940 nm, so the cameras
   don't see them.

@@ -21,7 +21,8 @@ typedef struct {
     int n_ball;
     double smash_est;
     int64_t pulse_us;
-    int64_t exposure_margin_us;
+    int64_t exposure_lead_us;    // exposure opens this long before the first flash
+    int64_t exposure_margin_us;  // and closes this long after the last
     int64_t min_lead_us;
     double min_speed, max_speed;  // m/s
 } lm_timing_cfg_t;

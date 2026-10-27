@@ -9,7 +9,7 @@
 //
 // Serial commands (newline-terminated): PING, TEST <club_mps>, FLASH
 // UNTESTED ON HARDWARE: pin polarity and camera trigger behaviour need bench
-// verification (see docs/design.md, "Camera trigger").
+// verification (see docs/wiring.md, "Camera trigger").
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,9 +23,14 @@
 #define PIN_GATE1 2      // comparator output, rising edge = club present
 #define PIN_GATE2 3
 #define PIN_STROBE 15    // LED driver input, high = LEDs on
-#define PIN_CAM_FIRST 16 // GP16..GP19: camera triggers (4-camera ready)
+#define PIN_CAM_FIRST 16 // GP16..GP19 -> ULN2003A -> camera J3 TRIG- (4-camera ready)
 #define N_CAM_PINS 4
-#define CAM_TRIG_ACTIVE_LOW 1  // GS camera XTR exposes while low; verify on bench
+// InnoMaker CAM-IMX296Mono-GS: the J3 opto LED is lit while idle and the sensor triggers
+// on its falling edge (LED off). Through the inverting ULN2003A, pin high = LED on, so
+// the pin is LOW while exposing. Whether the low-pulse width sets the exposure time (it
+// does in the IMX296's pulse-width trigger mode) is UNVERIFIED on the bench; if not, set
+// the exposure in libcamera to cover the whole burst.
+#define CAM_TRIG_ACTIVE_LOW 1
 
 #define GATE_TIMEOUT_US 60000   // gate 2 must follow gate 1 within this
 #define LOCKOUT_US 1500000      // between shots: debounce + LED thermal limit

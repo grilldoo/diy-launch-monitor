@@ -11,7 +11,7 @@ enclosure like ASA. Defaults are fine unless noted.
 | File | Qty | Stage | Settings |
 |---|---|---|---|
 | `ball_jig_both_halves.stl` | 1 | now | 0.12-0.16 mm layers, 3 walls, flange down, no supports |
-| `camera_mount_ballA.stl`, `camera_mount_ballB.stl` | 1 each | 1 | 0.2 mm, 4 walls, 40% infill, no supports |
+| `camera_mount_ballA.stl`, `camera_mount_ballB.stl` | 1 each | 1 | 0.2 mm, 4 walls, 40% infill, foot down, no supports |
 | `camera_mount_clubA.stl`, `camera_mount_clubB.stl` | 1 each | 2 | as above |
 | `../club_markers.svg` | sheet | 1 | paper, not 3D: print at 100% on matte white sticker paper |
 
@@ -44,9 +44,12 @@ fixed, so don't regenerate it.
 
 ![Camera mount](images/camera_mount.png)
 
-* Bolts to the top of a 2020 extrusion with 2x M5x10 screws and 2020 T-nuts.
-* The camera sits on the tilted platform with a 1/4"-20 x 5/8" screw from below into the
-  camera's tripod adapter. Push the camera back against the angled fence before tightening.
+* For the **InnoMaker CAM-IMX296Mono-GS** board: 39 x 39 mm, four holes on a 34 mm square.
+* Bolts to the top of a 2020 extrusion with 2x M5x10 screws and 2020 T-nuts. The screws sit
+  outside the plate, so you can reach them with the camera fitted.
+* The board screws onto the four bosses with **4x M2x8 self-tapping screws**, lens facing away
+  from the plate. The bosses hold the board 4 mm off the plate to clear the parts on its back.
+  Put the 15-pin ribbon connector at the top.
 * Pre-angled from the rig geometry:
 
   | Mount | Yaw (toe-in) | Pitch |
@@ -57,10 +60,11 @@ fixed, so don't regenerate it.
 * Space the two cameras of a pair **200 mm apart** (lens centre to lens centre). Camera A is
   the left one when you stand behind the unit facing the ball.
 * Stereo calibration measures the exact pose, so a degree or so of error is fine. Once
-  calibrated, the cameras must not move: add a drop of medium thread-locker, or a dab of hot
-  glue between camera and fence.
-* UNVERIFIED: check the tripod adapter's footprint and thread depth against a real camera
-  before printing both.
+  calibrated, the cameras must not move: add a drop of medium thread-locker on the M5s.
+* UNVERIFIED: InnoMaker's manual doesn't give the board's hole diameter (M2 fits either M2 or
+  M2.5 holes). Hold a board against the print before printing the second one.
+* The 850 nm filter cap that fits over the M12 lens comes later, once the lens is in hand to
+  measure.
 
 ## Club markers
 

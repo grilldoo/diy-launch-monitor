@@ -36,7 +36,7 @@ static void test_fast_swing_drops_early_flash(void) {
     cfg.min_lead_us = 1000;  // pretend the Pico is slow to react
     CHECK(lm_compute_schedule(&cfg, 0, 1857, &s));  // ~70 m/s
     CHECK(s.n_flashes < 8);
-    for (int i = 0; i < s.n_flashes; i++) CHECK(s.flash_us[i] >= 1857 + 1000 + cfg.exposure_margin_us);
+    for (int i = 0; i < s.n_flashes; i++) CHECK(s.flash_us[i] >= 1857 + 1000 + cfg.exposure_lead_us);
 }
 
 static void test_rejects_bad_input(void) {

@@ -4,17 +4,18 @@ Prices are rough USD estimates (late 2026) to plan with, not quotes. Part number
 suggestions; equivalents are fine unless noted. Everything is built **4-camera ready**:
 stage 1 leaves space and wiring for stage 2.
 
-## Stage 1: two cameras (~$565)
+## Stage 1: two cameras (~$530-600)
 
 | # | Part | Qty | Est. | Notes |
 |---|---|---|---|---|
 | 1 | Raspberry Pi 5, 8 GB | 1 | $80 | |
 | 2 | Pi 5 Active Cooler | 1 | $5 | Sustained vision load throttles without it |
 | 3 | microSD 64 GB (A2) or NVMe HAT + SSD | 1 | $12 | NVMe is nicer for saving raw shot frames |
-| 4 | Raspberry Pi Global Shutter Camera (IMX296) | 2 | $100 | Needs the XTR trigger mod (docs/design.md) |
-| 5 | 6 mm CS-mount lens (Raspberry Pi 6mm wide-angle) | 2 | $50 | |
-| 6 | 850 nm bandpass filter, ~25 mm, narrow band (10-30 nm) | 2 | $30 | Fits in a printed lens cap |
-| 7 | Camera cables, Pi 5 type (22-to-15 pin), 300 mm | 2 | $6 | |
+| 4 | **InnoMaker CAM-IMX296Mono-GS** (old name CAM-MIPI296RAW / CAM-IMX296RAW), mono IMX296 global shutter | 2 | $90-150 | Mono version has **no IR-cut filter**; opto-isolated hardware trigger on J3, no board mod. Not the Colour version (IR-cut fitted) or the official Pi GS camera (colour, IR-cut). Comes with an M12 2.8 mm lens (too wide; keep as a spare) and a CS lens seat |
+| 5 | M12 (S-mount, M12x0.5) lens, **6 mm**, for 1/2.9" or larger sensors, **no IR-cut filter** | 2 | $20-30 | Many M12 lenses ship with a 650 nm IR-cut: avoid those. Look for "no IR filter", "IR-corrected" or "850 nm" |
+| 6 | 850 nm bandpass filter, ~15-25 mm round, narrow band (10-30 nm) | 2 | $30 | Sits in a printed cap over the lens (designed once the lens is in hand) |
+| 7 | Camera cables, Pi 5 type (22-to-15 pin), 300 mm | 2 | $6 | The InnoMaker board has the standard 15-pin connector |
+| 7a | ULN2003A Darlington driver (DIP-16) + socket | 1 | $2 | Drives the camera trigger inputs (all four channels) |
 | 8 | Raspberry Pi Pico 2 (with headers) | 1 | $5 | Timing controller |
 | 9 | OSRAM SFH 4715AS (850 nm high-power IR LED) on star boards | 12 | $45 | Check the pulse-current rating in the datasheet |
 | 10 | LED driver: TC4427 gate driver (DIP-8), logic-level N-MOSFETs (e.g. IRLZ44N, TO-220), power resistors | 1 set | $15 | All through-hole, perfboard OK |
@@ -34,25 +35,25 @@ stage 1 leaves space and wiring for stage 2.
 | 24 | Club marker stickers: matte white vinyl sticker paper | 1 | $10 | Print black dots on it |
 | 25 | Checkerboard calibration target (print on foam board) | 1 | $5 | |
 | 26 | Line laser module (optional, shows ball position) | 1 | $5 | |
-| | **Stage 1 total** | | **~$565** | |
+| | **Stage 1 total** | | **~$530-600** | |
 
-## Stage 2: dedicated club camera pair (+~$300)
+## Stage 2: dedicated club camera pair (+~$270-350)
 
 | # | Part | Qty | Est. | Notes |
 |---|---|---|---|---|
 | 27 | Raspberry Pi 5, 8 GB + Active Cooler + microSD | 1 | $95 | Second Pi; linked to the first with a short Ethernet cable |
-| 28 | Raspberry Pi Global Shutter Camera | 2 | $100 | |
-| 29 | 12 mm C-mount lens | 2 | $50 | Tighter view of the last 10 cm before impact |
+| 28 | InnoMaker CAM-IMX296Mono-GS | 2 | $90-150 | |
+| 29 | M12 lens, **12 mm**, 1/2.9"+, no IR-cut filter | 2 | $30-50 | Tighter view of the last 10 cm before impact |
 | 30 | 850 nm bandpass filters | 2 | $30 | |
 | 31 | Upgrade pack to 3S3P (~15 Ah) | 1 | +$25 | Keeps ~6 h runtime with two Pis |
-| | **Stage 2 total** | | **~$300** | |
+| | **Stage 2 total** | | **~$270-350** | |
 
 ## Outdoor kit (optional, +~$60)
 940 nm LEDs (12), 940 nm bandpass filters (2 or 4), printed sun hood.
 
 ## Tools
-Bambu A1 Mini (yours), soldering iron with a fine tip, multimeter. Recommended for the camera
-XTR mod: flux, fine solder wick, tweezers, magnifier. A cheap USB logic analyser ($10) helps
+Bambu A1 Mini (yours), soldering iron with a fine tip, multimeter. No fine-pitch soldering is
+needed: the cameras' trigger inputs are on pin headers. A cheap USB logic analyser ($10) helps
 check strobe timing.
 
 ## Validation

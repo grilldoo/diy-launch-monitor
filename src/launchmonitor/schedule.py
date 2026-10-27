@@ -31,6 +31,7 @@ class TimingConfig:
     n_ball: int = 5
     smash_est: float = 1.35
     pulse_us: int = 15
+    exposure_lead_us: int = 300  # opto-isolated camera trigger: exposure start lags by tens of us
     exposure_margin_us: int = 50
     min_lead_us: int = 150  # time the Pico needs after gate 2 before the first event
     min_speed: float = 8.0
@@ -61,7 +62,7 @@ def compute_schedule(cfg: TimingConfig, t1_us: int, t2_us: int) -> Schedule:
         return Schedule(ok=False, error="speed out of range", club_speed=v)
 
     t_impact = t2_us + _r(cfg.gate2_m / v * 1e6)
-    earliest = t2_us + cfg.min_lead_us + cfg.exposure_margin_us
+    earliest = t2_us + cfg.min_lead_us + cfg.exposure_lead_us
     flashes: list[tuple[int, int]] = []
     for d in cfg.club_flash_m:
         t = t_impact - _r(d / v * 1e6)
@@ -79,6 +80,6 @@ def compute_schedule(cfg: TimingConfig, t1_us: int, t2_us: int) -> Schedule:
         club_speed=v,
         t_impact_us=t_impact,
         flashes=flashes,
-        exposure_start_us=flashes[0][0] - cfg.exposure_margin_us,
+        exposure_start_us=flashes[0][0] - cfg.exposure_lead_us,
         exposure_end_us=flashes[-1][0] + cfg.pulse_us + cfg.exposure_margin_us,
     )

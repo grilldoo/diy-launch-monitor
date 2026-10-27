@@ -6,7 +6,7 @@ GC3 / GCQuad. It sits beside the ball, needs no in-bay calibration, and sends ba
 
 * **Ball:** speed, vertical/horizontal launch, total spin, backspin, sidespin, spin axis, carry
 * **Club:** speed, path, attack angle, face to target, dynamic loft, face to path, smash
-* **Hardware:** Raspberry Pi 5, Pi Global Shutter cameras, IR strobe, Pi Pico 2 timing controller
+* **Hardware:** Raspberry Pi 5, InnoMaker IMX296 mono global-shutter cameras, IR strobe, Pi Pico 2 timing controller
 * **Cost:** about $565 for 2 cameras; about $865 for the GCQuad-style 4-camera build
 
 > Status: **pre-hardware.** The simulator, image detection, ball-dot matching, solver, flight

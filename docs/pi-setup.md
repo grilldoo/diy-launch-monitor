@@ -56,13 +56,22 @@ python3 -m serial.tools.miniterm /dev/ttyACM0 115200    # type PING, expect {"ty
 2. **Print the board:** `python -m launchmonitor calib board`, then print `charuco_board.png`
    at 100%, landscape. Glue it to foam board or card so it's flat. Measure a square: if it isn't
    26.0 mm, pass the measured size as `--square-mm` below.
-3. **Capture:** `python -m launchmonitor calib capture`. Hold the board 40-80 cm in front of the
-   unit, in different positions and tilts, until 20 pairs are saved. For the final "aim" image,
-   stand the board upright on the mat, printed side facing the unit and TARGET arrow pointing at
-   the target. Check it's vertical with a level: 1° of lean is 1° of launch-angle error.
+3. **Build calibration (once):** `python -m launchmonitor calib capture`, then follow the prompts.
+   * **Pairs:** hold the board 40-80 cm in front of the unit, in different positions and tilts,
+     until 20 pairs are saved.
+   * **Reference edge:** stand the board upright on the mat, printed side facing the unit, TARGET
+     arrow pointing the same way as the enclosure's reference edge. Make the board parallel to
+     that edge: measure from the edge to the board at both ends of the board, equal within
+     1 mm. Check it's vertical with a level (a phone level app is fine).
+   * **IMU tilts:** leave the board exactly where it is. The unit sits flat, then with its front,
+     back, left and right raised about 5 mm on a shim. Don't let it slide. Press Enter at each.
 4. **Solve:** `python -m launchmonitor calib solve` writes `calibration.json`. Expect reprojection
-   errors under 0.3 px and a baseline within a few mm of 200.
-5. **Moving the unit** only needs the aim step again: `python -m launchmonitor calib reaim`.
+   errors under 0.3 px, a baseline within a few mm of 200, and `imu_rms_deg` under about 0.1.
+5. **After that, no board.** At each setup, line the reference edge up with the target line and
+   start the monitor. Level is automatic. Redo step 3 only if a camera is knocked: the monitor warns
+   "cameras disagree" when that happens.
+6. **Optional precise aim:** `python -m launchmonitor calib reaim` with the board upright on the
+   target line, then `run --aim board`.
 
 ## 6. Run
 ```bash

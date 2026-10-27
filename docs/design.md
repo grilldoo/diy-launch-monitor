@@ -49,7 +49,7 @@ checks that every club and ball position the solver needs is in frame.
  Pi 5
   |- CSI0/CSI1 --> InnoMaker IMX296 mono global-shutter cameras, 850 nm bandpass filters
   |- USB ------> Pico 2: gates in, camera triggers + strobe out (microsecond timing)
-  |- I2C ------> IMU (auto-level)
+  |- I2C ------> ICM-42688 IMU (automatic level)
   `- Wi-Fi ----> GSPro (Open Connect, TCP 921) / phone web page
 ```
 
@@ -163,14 +163,39 @@ detection bias and timing jitter, none of which are modelled yet.
 What the table does show: **the dedicated club pair cuts face and loft error about 3x.** Ball
 data doesn't change, since stage 2 doesn't touch the ball cameras.
 
-## Setup at a new location
-1. Place the unit about 60 cm from the ball. The resting ball only needs to be in view (the live
-   preview shows it); its exact position is measured, not assumed.
-2. The IMU measures tilt, and the solver rotates results into a level frame. (Planned)
-3. Lay an alignment stick at the target and tap **Align**. The cameras detect the stick and
-   store an aim offset. (Planned)
-4. No other calibration. Stereo calibration is done once at build time with a checkerboard,
-   and the rigid aluminium frame keeps it.
+## Calibration and setup (src/launchmonitor/calibration.py)
+
+**Once, at build time** (ChArUco board; details in docs/pi-setup.md). Everything rigid is
+stored relative to the unit itself (camera A's frame):
+1. Lens intrinsics and distortion, and camera B relative to camera A: the board waved in front.
+2. **Reference edge:** one straight edge of the enclosure (with sight notches) defines "aim".
+   The board stands upright, parallel to that edge, and the software records which way the edge
+   points in camera coordinates.
+3. **IMU alignment:** with the board left in place, the unit is tilted on shims 4 ways and the
+   accelerometer read each time. A rotation fit (Kabsch) maps IMU axes to camera axes, and also
+   absorbs the accelerometer's constant offset over the range of tilts captured.
+
+**Every setup, no board:**
+1. Place the unit about 60 cm from the ball (the resting ball only needs to be in view; its
+   position is measured each shot, not assumed).
+2. Line the reference edge up with the target line (an alignment stick against it, or sight down
+   the notches). Indoors: square it to the screen.
+3. Turn it on. The IMU gives "up"; aim is the edge's direction projected onto the level plane, so
+   a sloping mat doesn't change the aim. The level is re-read every few seconds while idle, so a
+   bumped unit corrects itself, and each saved shot records the level and aim it used.
+
+Simulated (tests/test_calibration.py): with a deliberately crooked IMU mount (~30°), 0.006 g
+offset and realistic noise, the level + aim frame came out within 0.05° on average (0.11° worst)
+over 30 random setups tilted up to ±5°. Real-world aim accuracy will be dominated by how
+carefully the edge is lined up: typically ±0.5-1°, the same as a GC3/GCQuad.
+
+**Camera-agreement check:** every shot, the ball centres from both cameras are triangulated and
+reprojected. A median error above 1.5 px adds a "re-run the calibration" warning. A camera
+knocked by 0.4° trips it; a healthy rig reads well under 1 px. It can't see movement that keeps
+the views consistent (along the epipolar lines), but catches most bumps.
+
+`calib reaim` (board upright on the mat at the target line) remains as an optional precise aim
+(`run --aim board`).
 
 ## Known risks / open questions
 * **Dot matching on real images:** solved on simulated frames (above). Still unproven against

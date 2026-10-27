@@ -29,11 +29,16 @@ def format_result(r: ShotResult) -> str:
 
 
 class LaunchMonitor:
-    """`pico` needs read_shot(timeout); `frames` needs collect(timeout). See pico_link, capture, sim_source."""
+    """`pico` needs read_shot(timeout); `frames` needs collect(timeout). See pico_link, capture, sim_source.
 
-    def __init__(self, rig: Rig, pico, frames, gspro: GSProClient | None = None, shots_dir: str | Path | None = None,
-                 log: Callable[[str], None] = print):
-        self.rig = rig
+    `rig` is a Rig, or a function returning one. A function is re-evaluated while idle
+    (every HEARTBEAT_S), which is how the IMU's level correction follows a bumped unit.
+    """
+
+    def __init__(self, rig: Rig | Callable[[], Rig], pico, frames, gspro: GSProClient | None = None,
+                 shots_dir: str | Path | None = None, log: Callable[[str], None] = print):
+        self._rig_fn = rig if callable(rig) else None
+        self.rig = rig() if callable(rig) else rig
         self.pico = pico
         self.frames = frames
         self.gspro = gspro
@@ -56,6 +61,8 @@ class LaunchMonitor:
         if shot is None:
             if time.monotonic() - self._last_heartbeat > HEARTBEAT_S:
                 self._last_heartbeat = time.monotonic()
+                if self._rig_fn is not None:
+                    self.rig = self._rig_fn()
                 self._gspro_call(self.gspro.heartbeat if self.gspro else None)
             return None
         frames = self.frames.collect(timeout=1.0)
@@ -69,7 +76,10 @@ class LaunchMonitor:
             result = None
             self.log(f"processing failed: {e!r}")
         if self.shots_dir:
-            d = save_shot(self.shots_dir, frames, shot, result, {"processing_s": round(time.monotonic() - t0, 3)})
+            extra = {"processing_s": round(time.monotonic() - t0, 3)}
+            if "R_world_unit" in self.rig.meta:  # level + aim used, so replays reproduce this shot exactly
+                extra["R_world_unit"] = self.rig.meta["R_world_unit"]
+            d = save_shot(self.shots_dir, frames, shot, result, extra)
             self.log(f"saved {d}")
         if result is None:
             return None

@@ -78,4 +78,18 @@ slow changes in ambient light. Set the comparator threshold with a trimpot.
 
 ## Power
 3S pack -> fuse -> switch -> {5 V/5 A buck -> Pi 5 USB-C}, {12 V rail -> LED driver}.
-The Pico takes power from the Pi over USB. The IMU is on the Pi's I2C (GPIO2/3, 3.3 V).
+The Pico takes power from the Pi over USB.
+
+## IMU (ICM-42688-P breakout, Pi I2C bus 1)
+| IMU pin | Pi 5 header |
+|---|---|
+| VIN / 3V3 | pin 1 (3.3 V) |
+| GND | pin 6 |
+| SDA | pin 3 (GPIO2) |
+| SCL | pin 5 (GPIO3) |
+| AD0 / SA0 | GND (address 0x68) |
+
+Enable I2C (`sudo raspi-config` -> Interface Options -> I2C) and check with `i2cdetect -y 1`
+(0x68). Mount the board **rigidly on the camera extrusion**, not on the enclosure lid: it must
+not move relative to the cameras after calibration. Its orientation doesn't matter; the build
+calibration measures it. UNVERIFIED: register map from the datasheet (see `imu.py`).

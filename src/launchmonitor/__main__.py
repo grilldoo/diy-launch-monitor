@@ -5,13 +5,14 @@
   calib board    write the printable ChArUco board
   calib capture  save board image pairs from both cameras (free-running)
   calib solve    compute calibration.json from captured pairs
-  calib reaim    re-do the world frame after moving the unit
+  calib reaim    optional precise aim from the board (use with run --aim board)
   trigger on|off switch a camera's external-trigger mode (debug)
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import time
 from pathlib import Path
@@ -22,22 +23,48 @@ DEFAULT_CAL = "calibration.json"
 CAM_PORTS = {0: "camA", 1: "camB"}  # Pi 5 CSI port -> name; camA is on the left seen from behind the unit
 
 
-def _rig(args):
-    from .calibration import load_rig
+def _calibration(args):
+    from .calibration import load_calibration
+
+    if not Path(args.calibration).exists():
+        sys.exit(f"{args.calibration} not found: run `python -m launchmonitor calib solve` first (or use --sim)")
+    return load_calibration(args.calibration)
+
+
+def _rig_source(args):
+    """A Rig, or a function returning the current Rig (IMU level + reference-edge aim)."""
     from .rig import two_camera_rig
 
     if getattr(args, "sim", False) and not Path(args.calibration).exists():
         return two_camera_rig()
-    if not Path(args.calibration).exists():
-        sys.exit(f"{args.calibration} not found: run `python -m launchmonitor calib solve` first (or use --sim)")
-    return load_rig(args.calibration)
+    cal = _calibration(args)
+    if args.aim == "board":
+        if cal.R_world_unit_board is None:
+            sys.exit("no board aim stored: run `python -m launchmonitor calib reaim`")
+        return cal.rig(cal.R_world_unit_board)
+    from .imu import ICM42688
+
+    imu = ICM42688(bus=args.imu_bus)
+    last = {"tilt": None}
+
+    def current_rig():
+        acc = imu.read_up()
+        tilt = cal.tilt_deg(acc)
+        if last["tilt"] is None or abs(tilt - last["tilt"]) > 0.3:
+            print(f"level: unit tilted {tilt:.1f} deg from its calibration position (corrected automatically)")
+            if tilt > 10:
+                print("WARNING: more than 10 deg of tilt: is the unit sitting flat?")
+            last["tilt"] = tilt
+        return cal.rig(cal.world_from_imu(acc))
+
+    return current_rig
 
 
 def cmd_run(args):
     from .app import LaunchMonitor
     from .gspro import DEFAULT_PORT, GSProClient
 
-    rig = _rig(args)
+    rig = _rig_source(args)
     gspro = None
     if args.gspro:
         host, _, port = args.gspro.partition(":")
@@ -45,7 +72,7 @@ def cmd_run(args):
     if args.sim:
         from .sim_source import SimulatedLaunchMonitor
 
-        sim = SimulatedLaunchMonitor(rig, seed=args.seed, interval_s=args.sim_interval)
+        sim = SimulatedLaunchMonitor(rig() if callable(rig) else rig, seed=args.seed, interval_s=args.sim_interval)
         pico, frames = sim, sim
     else:
         from .capture import PiCameraSource
@@ -66,11 +93,22 @@ def cmd_run(args):
 
 def cmd_replay(args):
     from .app import format_result
-    from .pipeline import load_shot, process_shot
+    import numpy as np
 
-    rig = _rig(args)
+    from .pipeline import load_shot, process_shot
+    from .rig import two_camera_rig
+
+    cal = None if (args.sim and not Path(args.calibration).exists()) else _calibration(args)
     for d in args.dirs:
-        frames, pico, _ = load_shot(d)
+        frames, pico, data = load_shot(d)
+        if cal is None:
+            rig = two_camera_rig()
+        elif "R_world_unit" in data:  # the level + aim in use when the shot was taken
+            rig = cal.rig(np.array(data["R_world_unit"]))
+        elif cal.R_world_unit_board is not None:
+            rig = cal.rig(cal.R_world_unit_board)
+        else:
+            sys.exit(f"{d}: no level/aim saved with the shot and no board aim in the calibration")
         _, r = process_shot(frames, pico, rig)
         print(f"{d}\n{format_result(r)}\n")
 
@@ -109,16 +147,36 @@ def cmd_calib_capture(args):
                     cv2.imwrite(str(out / f"pair{n:02d}_{name}.png"), img)
                 n, last = n + 1, time.monotonic()
                 print(f"  pair {n}/{args.pairs}")
-        input("Now stand the board upright on the mat facing the unit, TARGET arrow toward the target, "
-              "checked vertical with a level. Press Enter to capture the aim pair.")
-        frames = None
-        while not frames:
-            frames = src.collect(1.0)
+        input("\nREFERENCE EDGE: stand the board upright on the mat facing the unit, TARGET arrow pointing the\n"
+              "same way as the unit's reference edge, the board parallel to that edge (measure the gap at both\n"
+              "ends of the board: equal within 1 mm). Check the board is vertical with a level. Press Enter.")
+        frames = _grab(src)
         for name, img in frames.items():
-            cv2.imwrite(str(out / f"aim_{name}.png"), img)
+            cv2.imwrite(str(out / f"edge_{name}.png"), img)
+        if not args.no_imu:
+            from .imu import ICM42688
+
+            imu, readings = ICM42688(bus=args.imu_bus), []
+            steps = ["sitting flat, as for the edge capture", "front raised ~5 mm on a shim", "back raised ~5 mm",
+                     "left side raised ~5 mm", "right side raised ~5 mm"]
+            print("\nIMU: leave the board exactly where it is. Tilt only the unit, as asked.")
+            for k, step in enumerate(steps):
+                input(f"  unit {step}; keep it still and press Enter")
+                acc = imu.read_up(400)
+                img = _grab(src)[CAM_PORTS[0]]
+                cv2.imwrite(str(out / f"tilt{k}_{CAM_PORTS[0]}.png"), img)
+                readings.append(acc.tolist())
+            (out / "imu.json").write_text(json.dumps({"readings": readings}, indent=1))
         print(f"saved to {out}; next: python -m launchmonitor calib solve {out}")
     finally:
         src.stop()
+
+
+def _grab(src):
+    frames = None
+    while not frames:
+        frames = src.collect(1.0)
+    return frames
 
 
 def _read(p):
@@ -135,35 +193,41 @@ def _board(args):
 
 
 def cmd_calib_solve(args):
-    from .calibration import calibrate_from_images, save_rig
+    from .calibration import calibrate_from_images, save_calibration
 
     d = Path(args.dir)
     a, b = CAM_PORTS[0], CAM_PORTS[1]
     pairs = [(_read(p), _read(str(p).replace(f"_{a}.png", f"_{b}.png"))) for p in sorted(d.glob(f"pair*_{a}.png"))]
-    aim = (_read(d / f"aim_{a}.png"), _read(d / f"aim_{b}.png"))
-    rig, report = calibrate_from_images(pairs, aim, _board(args), (a, b))
-    save_rig(rig, args.out, {"report": report})
+    edge = (_read(d / f"edge_{a}.png"), _read(d / f"edge_{b}.png"))
+    tilts = None
+    if (d / "imu.json").exists():
+        readings = json.loads((d / "imu.json").read_text())["readings"]
+        tilts = [(_read(d / f"tilt{k}_{a}.png"), r) for k, r in enumerate(readings)]
+    cal, report = calibrate_from_images(pairs, edge, _board(args), (a, b), tilts)
+    save_calibration(cal, args.out, {"report": report})
     for k, v in report.items():
         print(f"  {k}: {v}")
     print(f"wrote {args.out}")
     if report["stereo_rms_px"] > 0.5:
         print("WARNING: stereo error above 0.5 px: check the board is flat and the cameras didn't move")
+    if tilts is None:
+        print("No IMU captures: only `run --aim board` will work (after `calib reaim`).")
 
 
 def cmd_calib_reaim(args):
-    from .calibration import load_rig, reaim, save_rig
+    from .calibration import load_calibration, reaim, save_calibration
 
-    rig = load_rig(args.calibration)
+    cal = load_calibration(args.calibration)
     src = _free_running_cameras()
     try:
-        input("Stand the board upright on the mat facing the unit, TARGET arrow toward the target. Press Enter.")
-        frames = None
-        while not frames:
-            frames = src.collect(1.0)
+        input("Stand the board upright on the mat facing the unit, TARGET arrow toward the target, checked\n"
+              "vertical with a level. Press Enter.")
+        frames = _grab(src)
     finally:
         src.stop()
-    save_rig(reaim(rig, frames[CAM_PORTS[0]], _board(args)), args.calibration, {"reaimed": time.strftime("%Y-%m-%d %H:%M")})
-    print(f"updated {args.calibration}")
+    save_calibration(reaim(cal, frames[CAM_PORTS[0]], _board(args)), args.calibration,
+                     {"reaimed": time.strftime("%Y-%m-%d %H:%M")})
+    print(f"updated {args.calibration}; use it with `run --aim board`")
 
 
 def cmd_trigger(args):
@@ -181,6 +245,9 @@ def main(argv=None):
 
     r = sub.add_parser("run", help="run the launch monitor")
     r.add_argument("--calibration", default=DEFAULT_CAL)
+    r.add_argument("--aim", choices=["imu", "board"], default="imu",
+                   help="imu: automatic level + reference-edge aim (default); board: last `calib reaim`")
+    r.add_argument("--imu-bus", type=int, default=1)
     r.add_argument("--pico", default="/dev/ttyACM0")
     r.add_argument("--gspro", help="GSPro PC address, host[:port] (default port 921)")
     r.add_argument("--shots", default="shots", help="directory for saved shots ('' to disable)")
@@ -206,6 +273,8 @@ def main(argv=None):
     cc.add_argument("--out", default="calib")
     cc.add_argument("--pairs", type=int, default=20)
     cc.add_argument("--interval", type=float, default=1.5)
+    cc.add_argument("--no-imu", action="store_true", help="skip the IMU tilt captures")
+    cc.add_argument("--imu-bus", type=int, default=1)
     cc.set_defaults(fn=cmd_calib_capture)
     cs = c.add_parser("solve")
     cs.add_argument("dir", nargs="?", default="calib")

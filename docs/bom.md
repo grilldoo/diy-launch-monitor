@@ -22,7 +22,8 @@ stage 1 leaves space and wiring for stage 2.
 | 11 | Capacitor bank: low-ESR electrolytics, about 4 x 2200 µF 25 V | 1 set | $8 | Supplies the flash current so the battery doesn't have to |
 | 12 | Gate sensors: BPW34 photodiodes x2, 940 nm IR LEDs x2, MCP6002 op-amp (DIP) + LM393 comparator (DIP), small lenses or printed tubes | 1 set | $12 | Through-hole |
 | 13 | Retro-reflective tape (dots on the mat) | 1 | $8 | |
-| 14 | IMU breakout (ICM-42688 or MPU-6050, I2C) | 1 | $10 | Auto-level |
+| 14 | **ICM-42688-P** IMU breakout (I2C, 3.3 V) | 1 | $10-15 | Automatic level. Pick this over the MPU-6050: its offset drifts far less with temperature (about 0.2° vs 1° of level error over a 20 °C swing). Mount it rigidly on the camera extrusion |
+| 14a | Shims for the IMU calibration: 2 x 5 mm (washers, or a printed step) | - | $0 | Build time only |
 | 15 | 3S2P 21700 Li-ion pack with BMS (~10 Ah, ~100 Wh) | 1 | $55 | Or build from cells + 3S BMS board |
 | 16 | 3S charger (12.6 V) + DC jack | 1 | $15 | |
 | 17 | 5 V / 5 A buck converter (Pi 5 needs 5 A for full USB power) | 1 | $15 | |

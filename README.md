@@ -74,5 +74,5 @@ cd firmware/pico && cmake -B build -DPICO_BOARD=pico2 && cmake --build build
 2. **Ball data:** stereo calibration, Pi capture, real ball detection, GSPro hookup
 3. **Spin:** marked balls, dot detection and correspondence
 4. **Club:** gates, club sticker detection, face/path
-5. **Package:** enclosure, battery, IMU auto-level, alignment-stick aim, phone page
+5. **Package:** enclosure (with the reference edge and sight notches), battery, phone page
 6. **Stage 2 and outdoor:** dedicated club camera pair; 940 nm outdoor kit

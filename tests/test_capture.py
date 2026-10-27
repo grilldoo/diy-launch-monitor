@@ -1,3 +1,4 @@
+import ctypes
 import json
 
 import numpy as np
@@ -34,7 +35,7 @@ def test_trigger_register_writes():
     def fake_ioctl(fd, req, data):
         assert req == imx296.I2C_RDWR and data.nmsgs == 1
         m = data.msgs[0]
-        buf = (imx296.ctypes.c_uint8 * m.len).from_address(m.buf)
+        buf = (ctypes.c_uint8 * m.len).from_address(m.buf)
         sent.append((m.addr, bytes(buf)))
 
     imx296.Sensor(4, ioctl=fake_ioctl).set_trigger(True)

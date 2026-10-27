@@ -15,12 +15,8 @@ the sensor registers, so capture.PiCameraSource enables trigger mode *after* sta
 
 from __future__ import annotations
 
-import ctypes
-import fcntl
-import os
-from typing import Callable
+from .i2c import I2C_RDWR, I2CDevice  # noqa: F401  (I2C_RDWR re-exported for tests)
 
-I2C_RDWR = 0x0707
 SENSOR_ADDR = 0x1A
 PI5_BUS = {0: 6, 1: 4}  # CSI port -> I2C bus
 
@@ -42,42 +38,14 @@ TRIGGER_OFF = [
 ]
 
 
-class _Msg(ctypes.Structure):
-    _fields_ = [("addr", ctypes.c_uint16), ("flags", ctypes.c_uint16), ("len", ctypes.c_uint16), ("buf", ctypes.c_void_p)]
-
-
-class _RdwrData(ctypes.Structure):
-    _fields_ = [("msgs", ctypes.POINTER(_Msg)), ("nmsgs", ctypes.c_uint32)]
-
-
 def reg_write_bytes(reg: int, val: int) -> bytes:
     """16-bit register address (big-endian) + 8-bit value, as the IMX296 expects."""
     return bytes([(reg >> 8) & 0xFF, reg & 0xFF, val & 0xFF])
 
 
-class Sensor:
-    def __init__(self, bus: int, addr: int = SENSOR_ADDR, ioctl: Callable | None = None):
-        self.addr = addr
-        self._ioctl = ioctl or fcntl.ioctl
-        self._fd = os.open(f"/dev/i2c-{bus}", os.O_RDWR) if ioctl is None else -1
-
-    def close(self) -> None:
-        if self._fd >= 0:
-            os.close(self._fd)
-            self._fd = -1
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc):
-        self.close()
-
-    def write(self, reg: int, val: int) -> None:
-        data = reg_write_bytes(reg, val)
-        buf = (ctypes.c_uint8 * len(data))(*data)
-        msg = _Msg(self.addr, 0, len(data), ctypes.cast(buf, ctypes.c_void_p))
-        arr = (_Msg * 1)(msg)
-        self._ioctl(self._fd, I2C_RDWR, _RdwrData(ctypes.cast(arr, ctypes.POINTER(_Msg)), 1))
+class Sensor(I2CDevice):
+    def __init__(self, bus: int, addr: int = SENSOR_ADDR, ioctl=None):
+        super().__init__(bus, addr, reg16=True, ioctl=ioctl)
 
     def set_trigger(self, on: bool) -> None:
         for reg, val in TRIGGER_ON if on else TRIGGER_OFF:

@@ -16,6 +16,8 @@ enclosure like ASA. Defaults are fine unless noted.
 | `../club_markers.svg` | sheet | 1 | paper, not 3D: print at 100% on matte white sticker paper |
 
 The enclosure and battery box come later, once the boards and pack are in hand to measure.
+The enclosure will have a straight **reference edge** with a sight notch at each end: lining
+that edge up with the target line is how the unit is aimed at each setup (docs/design.md).
 
 ## Ball-marking jig
 

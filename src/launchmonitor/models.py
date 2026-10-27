@@ -60,6 +60,7 @@ class ShotResult:
     face_deg: float | None = None
     loft_deg: float | None = None
     carry_yd: float | None = None
+    stereo_err_px: float | None = None  # camera-agreement check: grows if a camera has moved
     warnings: list[str] = field(default_factory=list)
 
     @property

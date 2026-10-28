@@ -77,19 +77,32 @@ A club passing through the beam causes a sharp drop in returned light. AC coupli
 slow changes in ambient light. Set the comparator threshold with a trimpot.
 
 ## Power
-3S pack -> fuse -> switch -> {5 V/5 A buck -> Pi 5 USB-C}, {12 V rail -> LED driver}.
+Battery 12 V DC out (TalentCell, 5.5 x 2.1 mm plug, 9-12.6 V) -> 3 A fuse -> switch ->
+{Pololu D36V50F5 5 V -> Pi 5}, {Pololu S18V20F12 12 V -> capacitor bank -> LED driver}.
+Feed the Pi either through a USB-C pigtail or the header's 5 V pins (2, 4) and GND. Without
+USB-C power negotiation the Pi limits USB peripherals to 600 mA, which is plenty for the Pico.
 The Pico takes power from the Pi over USB.
 
-## IMU (ICM-42688-P breakout, Pi I2C bus 1)
-| IMU pin | Pi 5 header |
-|---|---|
-| VIN / 3V3 | pin 1 (3.3 V) |
-| GND | pin 6 |
-| SDA | pin 3 (GPIO2) |
-| SCL | pin 5 (GPIO3) |
-| AD0 / SA0 | GND (address 0x68) |
+## Level sensor (ADXL355 on the EVAL-ADXL355-PMDZ board, Pi SPI0)
+The board has a standard 12-pin Pmod connector; its top row is the usual Pmod SPI pinout.
 
-Enable I2C (`sudo raspi-config` -> Interface Options -> I2C) and check with `i2cdetect -y 1`
-(0x68). Mount the board **rigidly on the camera extrusion**, not on the enclosure lid: it must
-not move relative to the cameras after calibration. Its orientation doesn't matter; the build
-calibration measures it. UNVERIFIED: register map from the datasheet (see `imu.py`).
+| Pmod pin | Signal | Pi 5 header |
+|---|---|---|
+| 1 | CS | pin 24 (GPIO8, CE0) |
+| 2 | MOSI | pin 19 (GPIO10) |
+| 3 | MISO | pin 21 (GPIO9) |
+| 4 | SCLK | pin 23 (GPIO11) |
+| 5 | GND | pin 25 |
+| 6 | VCC (3.3 V) | pin 17 |
+
+Enable SPI (`sudo raspi-config` -> Interface Options -> SPI) and `sudo apt install python3-spidev`.
+UNVERIFIED: check the pin numbers against the board's silkscreen and Analog Devices' user
+guide before powering it. The register map in `imu.py` is from memory of the datasheet too.
+
+Mount the board **rigidly on the camera extrusion**, not on the enclosure lid: it must not move
+relative to the cameras after calibration. Its orientation doesn't matter; the build calibration
+measures it.
+
+Fallback: an ICM-42688-P breakout on I2C bus 1 (VIN to pin 1, GND pin 6, SDA pin 3, SCL pin 5,
+AD0 to GND for address 0x68), run with `--imu icm42688`. Its zero point drifts up to ~6x more with
+temperature (see `imu.py`), so expect up to ~1° of level error between a cold and a warm session.

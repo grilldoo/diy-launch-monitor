@@ -6,8 +6,8 @@ GC3 / GCQuad. It sits beside the ball, needs no in-bay calibration, and sends ba
 
 * **Ball:** speed, vertical/horizontal launch, total spin, backspin, sidespin, spin axis, carry
 * **Club:** speed, path, attack angle, face to target, dynamic loft, face to path, smash
-* **Hardware:** Raspberry Pi 5, InnoMaker IMX296 mono global-shutter cameras, IR strobe, Pi Pico 2 timing controller
-* **Cost:** about $565 for 2 cameras; about $865 for the GCQuad-style 4-camera build
+* **Hardware:** Raspberry Pi 5, InnoMaker IMX296 mono global-shutter cameras, IR strobe, Pi Pico 2 timing controller, ADXL355 level sensor
+* **Cost:** about $750 for 2 cameras (~$650 with budget swaps); about $1,150 for the GCQuad-style 4-camera build. Sourced parts list in docs/bom.md (Oct 2026 prices)
 
 > Status: **pre-hardware.** Everything from camera capture to GSPro is written: Pico timing
 > firmware, capture, ChArUco stereo calibration, image detection, ball-dot matching, solver,
@@ -37,6 +37,7 @@ src/launchmonitor/   Python package that runs on the Pi
   flight.py          ball-flight model (carry)
   gspro.py           GSPro Open Connect v1 client
   pico_link.py       Pico serial link
+  imu.py             level sensor drivers (ADXL355, ICM-42688)
   capture.py         picamera2 capture in trigger mode, frame pairing
   imx296.py          camera trigger-mode registers over I2C
   calibration.py     ChArUco intrinsics, stereo and aim calibration

@@ -42,9 +42,9 @@ def _rig_source(args):
         if cal.R_world_unit_board is None:
             sys.exit("no board aim stored: run `python -m launchmonitor calib reaim`")
         return cal.rig(cal.R_world_unit_board)
-    from .imu import ICM42688
+    from .imu import open_imu
 
-    imu = ICM42688(bus=args.imu_bus)
+    imu = open_imu(args.imu, args.imu_bus)
     last = {"tilt": None}
 
     def current_rig():
@@ -154,9 +154,9 @@ def cmd_calib_capture(args):
         for name, img in frames.items():
             cv2.imwrite(str(out / f"edge_{name}.png"), img)
         if not args.no_imu:
-            from .imu import ICM42688
+            from .imu import open_imu
 
-            imu, readings = ICM42688(bus=args.imu_bus), []
+            imu, readings = open_imu(args.imu, args.imu_bus), []
             steps = ["sitting flat, as for the edge capture", "front raised ~5 mm on a shim", "back raised ~5 mm",
                      "left side raised ~5 mm", "right side raised ~5 mm"]
             print("\nIMU: leave the board exactly where it is. Tilt only the unit, as asked.")
@@ -247,7 +247,8 @@ def main(argv=None):
     r.add_argument("--calibration", default=DEFAULT_CAL)
     r.add_argument("--aim", choices=["imu", "board"], default="imu",
                    help="imu: automatic level + reference-edge aim (default); board: last `calib reaim`")
-    r.add_argument("--imu-bus", type=int, default=1)
+    r.add_argument("--imu", choices=["adxl355", "icm42688"], default="adxl355", help="level sensor")
+    r.add_argument("--imu-bus", type=int, help="SPI bus (adxl355, default 0) or I2C bus (icm42688, default 1)")
     r.add_argument("--pico", default="/dev/ttyACM0")
     r.add_argument("--gspro", help="GSPro PC address, host[:port] (default port 921)")
     r.add_argument("--shots", default="shots", help="directory for saved shots ('' to disable)")
@@ -274,7 +275,8 @@ def main(argv=None):
     cc.add_argument("--pairs", type=int, default=20)
     cc.add_argument("--interval", type=float, default=1.5)
     cc.add_argument("--no-imu", action="store_true", help="skip the IMU tilt captures")
-    cc.add_argument("--imu-bus", type=int, default=1)
+    cc.add_argument("--imu", choices=["adxl355", "icm42688"], default="adxl355", help="level sensor")
+    cc.add_argument("--imu-bus", type=int, help="SPI bus (adxl355, default 0) or I2C bus (icm42688, default 1)")
     cc.set_defaults(fn=cmd_calib_capture)
     cs = c.add_parser("solve")
     cs.add_argument("dir", nargs="?", default="calib")

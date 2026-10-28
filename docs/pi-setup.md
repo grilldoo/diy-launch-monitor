@@ -9,8 +9,9 @@ assume `golf`), Wi-Fi and SSH in Raspberry Pi Imager.
 
 ```bash
 sudo apt update && sudo apt full-upgrade -y
-sudo apt install -y git python3-venv python3-picamera2 python3-serial i2c-tools
-sudo usermod -aG video,i2c,dialout golf     # cameras, camera I2C, Pico serial; log out and back in
+sudo apt install -y git python3-venv python3-picamera2 python3-serial python3-spidev i2c-tools
+sudo usermod -aG video,i2c,spi,dialout golf  # cameras, camera I2C, level sensor, Pico serial; log out and back in
+sudo raspi-config nonint do_spi 0              # enable SPI for the level sensor
 ```
 
 ## 2. Cameras

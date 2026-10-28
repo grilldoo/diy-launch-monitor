@@ -44,12 +44,12 @@ checks that every club and ball position the solver needs is in frame.
 ## Hardware architecture
 
 ```
- 3S Li-ion pack (BMS) --+-- 5V/5A buck --> Raspberry Pi 5 (8GB)  [+ 2nd Pi 5 in stage 2]
+ 12 V Li-ion pack (BMS) -+-- 5V/5A buck --> Raspberry Pi 5 (4GB)  [+ 2nd Pi 5 in stage 2]
                         +-- 12V rail + capacitor bank --> LED driver --> 12x 850 nm IR LEDs
  Pi 5
   |- CSI0/CSI1 --> InnoMaker IMX296 mono global-shutter cameras, 850 nm bandpass filters
   |- USB ------> Pico 2: gates in, camera triggers + strobe out (microsecond timing)
-  |- I2C ------> ICM-42688 IMU (automatic level)
+  |- SPI ------> ADXL355 accelerometer (automatic level)
   `- Wi-Fi ----> GSPro (Open Connect, TCP 921) / phone web page
 ```
 
@@ -216,6 +216,10 @@ Simulated (tests/test_calibration.py): with a deliberately crooked IMU mount (~3
 offset and realistic noise, the level + aim frame came out within 0.05° on average (0.11° worst)
 over 30 random setups tilted up to ±5°. Real-world aim accuracy will be dominated by how
 carefully the edge is lined up: typically ±0.5-1°, the same as a GC3/GCQuad.
+
+The simulation doesn't model the accelerometer's zero point drifting with temperature. That's
+why the level sensor is an ADXL355 (0.15 mg/°C max, so under 0.2° over a 20 °C swing) rather
+than a consumer IMU like the ICM-42688-P (up to ±1 mg/°C, so up to ~1°).
 
 **Camera-agreement check:** every shot, the ball centres from both cameras are triangulated and
 reprojected. A median error above 1.5 px adds a "re-run the calibration" warning. A camera
